@@ -1,12 +1,12 @@
 import Header from "@/components/SharedLayouts/Header/Header"
-import AllSystem from "@/components/uptime/allSystem/AllSystem"
+import Mainpage from "@/components/uptime/allPages/MainPage"
 
 
 const Uptime = () => {
     return (
       <>
         <Header />
-        <AllSystem />
+        <Mainpage />
       </>
     )
   }
