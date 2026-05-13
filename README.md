@@ -51,7 +51,7 @@ upstat/
 | API (workers) | Go |
 | Database | PostgreSQL (via Supabase) |
 | Real-time | WebSockets / Server-Sent Events |
-| Infrastructure | Docker, Helm, Terrafoam |
+| Infrastructure | Docker, Helm, Terraform |
 | CI/CD  | Github Actions |
 
 ---
@@ -64,7 +64,7 @@ upstat/
 - [Node.js](https://nodejs.org/) v20+
 - [Go](https://go.dev/) 1.21+ (for ping workers)
 
-  ### Setup
+### Setup
   ```bash
   # 1. Clone the repo
   git clone https://github.com/cuesoftinc/upstat.git
@@ -100,7 +100,7 @@ upstat/
 ---
 
 ## Documentation 
-Full Documentation is in the [./docs/) folder:
+Full Documentation is in the [./docs/](./docs/) folder:
 
 - [Architecture Overview](./docs/ARCHITECTURE.md)
 - [Local Development](./docs/LOCAL_DEVELOPMENT.md)
