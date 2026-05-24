@@ -6,6 +6,7 @@ option go_package = "github/CuesoftCloud/utils";
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GoogleAuth(GoogleAuthRequest) returns (GetUserResponse);
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
@@ -15,6 +16,10 @@ service UserService {
 message GetUserRequest {
   string email = 1;
   string password = 2;
+}
+
+message GoogleAuthRequest {
+  string id_token = 1;
 }
 
 message GetUserResponse {
@@ -63,5 +68,4 @@ message Empty {}
 message GetAllUsersResponse {
   repeated GetUserResponse users = 1;
 }
-
 
