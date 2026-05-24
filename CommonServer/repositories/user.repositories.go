@@ -129,6 +129,11 @@ func (db *userRepository) UpdateUser(id string, user models.User) (*mongo.Update
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
 	// Update only the fields that are passed in
 	updatedUser := bson.M{}
 	if user.Name != "" {
@@ -142,7 +147,7 @@ func (db *userRepository) UpdateUser(id string, user models.User) (*mongo.Update
 	}
 	updatedUser["updated_at"] = time.Now()
 
-	result, err := collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updatedUser})
+	result, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": updatedUser})
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +161,9 @@ func (db *userRepository) DeleteUser(id string) (*mongo.DeleteResult, error) {
 	defer cancel()
 
 	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 
 	result, err := collection.DeleteOne(ctx, bson.M{"_id": oid})
 	if err != nil {

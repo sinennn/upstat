@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	Id        primitive.ObjectID `json:"_id,omitempty"`
-	Name      string             `json:"name,omitempty" validate:"required"`
-	Email     string             `json:"email,omitempty" validate:"required,email"`
-	Password  string             `json:"password,omitempty" validate:"required"`
+	Id        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name      string             `json:"name,omitempty" bson:"name,omitempty" validate:"required"`
+	Email     string             `json:"email,omitempty" bson:"email,omitempty" validate:"required,email"`
+	Password  string             `json:"password,omitempty" bson:"password,omitempty" validate:"required"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
