@@ -28,11 +28,20 @@ func GenerateToken(userId string, email string) string {
 	return signedToken
 }
 
-func ValidateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok { // Check if the signing method is HMAC
+func ValidateToken(tokenString string) (string, string, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
+	if err != nil {
+		return "", "", err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userID, _ := claims["userId"].(string)
+		emailID, _ := claims["email"].(string)
+		return userID, emailID, nil
+	}
+	return "", "", fmt.Errorf("invalid token claims")
 }
