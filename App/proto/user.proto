@@ -13,6 +13,62 @@ service UserService {
   rpc GetAllUsers(Empty) returns (GetAllUsersResponse);
 }
 
+service MonitorService{
+   rpc CreateMonitor(CreateMonitorRequest) returns (MonitorResponse);
+   rpc UpdateMonitot(UpdateMonitorRequest) returns (MonitorResponse);
+   rpc GetMonitor(GetMonitorRequest) returns (MonitorResponse);
+   rpc ListMonitors(ListMonitorsRequest) returns (ListMonitorsResponse);
+   rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
+}
+
+
+message Monitor{
+  string id = 1;
+  string owner_id = 2;
+  string name = 3;
+  string type = 4;
+  string target = 5; 
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message GetMonitorRequest{
+  string id = 1;
+}
+
+message CreateMonitorRequest{
+  string name = 1;
+  string type = 2;
+  string target = 3;
+}
+
+message UpdateMonitorRequest{
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string target = 4;
+}
+
+message MonitorResponse{
+  Monitor monitor = 1;
+  String Status = 2;
+}
+
+message DeleteMonitorRequest{
+   string id = 1;
+}
+
+message DeleteMonitorResponse{
+   string data = 1;
+   string Status = 2;
+}
+
+message ListMonitorsRequest{}
+
+message ListMonitorsResponse{
+   repeated Monitor monitors = 1;
+}
+
 message GetUserRequest {
   string email = 1;
   string password = 2;
@@ -48,6 +104,10 @@ message UpdateUserRequest {
   string email = 3;
   string password = 4;
 }
+
+
+
+
 
 message UpdateUserResponse {
     string data = 1;
