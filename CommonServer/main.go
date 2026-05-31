@@ -25,6 +25,7 @@ func main() {
 		grpc.UnaryInterceptor(utils.AuthenticateInterceptor),
 	)
 	pb.RegisterUserServiceServer(server, services.NewUserServiceServer(db))
+	pb.RegisterMonitorServiceServer(server, services.NewMonitorServiceServer(db))
 	reflection.Register(server)
 
 	log.Println("gRPC server started on :8080")
