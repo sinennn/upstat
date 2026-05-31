@@ -100,7 +100,7 @@ func (s *MonitorServiceServer) UpdateMonitor (ctx context.Context, req *pb.Updat
 	 return nil, status.Error(codes.Internal, "monitor not found")
    }
 
-   return&pb.MonitorResponse{
+   return &pb.MonitorResponse{
 	Monitor: monitorResponse(monitor),
 	Status: "success",
    }, nil
