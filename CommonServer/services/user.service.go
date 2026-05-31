@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-
+    "time"
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
@@ -159,6 +159,17 @@ func (s *UserServiceServer) GetAllUsers(ctx context.Context, req *pb.Empty) (*pb
 	return response, nil
 }
 
+func monitorResponse(monitor *models.Monitor) *pb.Monitor {
+	return &pb.Monitor{
+		Id:        monitor.Id.Hex(),
+		OwnerId:   monitor.OwnerId,
+		Name:      monitor.Name,
+		Target:    monitor.Target,
+		Type:      monitor.Type,
+		CreatedAt: monitor.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: monitor.UpdatedAt.Format(time.RFC3339),
+	}
+}
 func userResponse(user *models.User, token string, responseStatus string) *pb.GetUserResponse {
 	return &pb.GetUserResponse{
 		Id:     user.Id.Hex(),
