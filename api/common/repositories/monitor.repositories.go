@@ -111,6 +111,7 @@ func (db *monitorRepository) UpdateMonitor(id string, ownerId string, monitor mo
 }
 
 func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.DeleteResult, error) {
+
 	collection := monitorCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -134,6 +135,7 @@ func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.De
 }
 
 func (db *monitorRepository) GetMonitor(id string, ownerID string) (*models.Monitor, error) {
+
 	collection := monitorCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
