@@ -13,9 +13,12 @@ import (
 )
 
 type IncidentRepository interface {
+	CreateIncident(incident *models.Incident) (models.Incident, error)
 	GetActiveIncidentForMonitor(monitorID primitive.ObjectID) (*models.Incident, error)
 	ResolveActiveIncidents(monitorID primitive.ObjectID) error
 	ListActiveIncidents() ([]*models.Incident, error)
+	ListActiveIncidentsByMonitors(monitorIDs []string) ([]*models.Incident, error)
+	ListResolvedIncidentsByMonitors(monitorIDs []string, limit int64) ([]*models.Incident, error)
 	ListIncidentsByMonitor(monitorID string, limit int64) ([]*models.Incident, error)
 }
 
@@ -31,18 +34,39 @@ func NewIncidentRepository(db *config.DB) IncidentRepository {
 	return &incidentRepository{connection: db}
 }
 
-
-func (db *incidentRepository) ListIncidentsByMonitor(monitorID string, limit int64)([]*models.Incident, error){
+func (db *incidentRepository) CreateIncident(incident *models.Incident) (models.Incident, error) {
 	collection := incidentCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	listByMonitor := bson.M{"monitorId":monitorID}
+	incident.Id = primitive.NewObjectID()
+	incident.StartedAt = time.Now()
+	incident.CreatedAt = time.Now()
+	incident.UpdatedAt = time.Now()
+	if incident.Status == "" {
+		incident.Status = "active"
+	}
+
+	_, err := collection.InsertOne(ctx, incident)
+	if err != nil {
+		return models.Incident{}, err
+	}
+
+	return *incident, err
+
+}
+
+func (db *incidentRepository) ListIncidentsByMonitor(monitorID string, limit int64) ([]*models.Incident, error) {
+	collection := incidentCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	listByMonitor := bson.M{"monitorId": monitorID}
 
 	findOptions := options.Find().SetLimit(limit)
 
 	cursor, err := collection.Find(ctx, listByMonitor, findOptions)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -54,25 +78,65 @@ func (db *incidentRepository) ListIncidentsByMonitor(monitorID string, limit int
 
 }
 
-
-
-func (db *incidentRepository) ListActiveIncidents()([]*models.Incident, error){
+func (db *incidentRepository) ListActiveIncidents() ([]*models.Incident, error) {
 	collection := incidentCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-    active:= bson.M{"status":"active"}
+	active := bson.M{"status": "active"}
 
 	cursor, err := collection.Find(ctx, active)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	defer cursor.Close(ctx)
 
-    var activeIncidents []*models.Incident
-    err = cursor.All(ctx, &activeIncidents)
+	var activeIncidents []*models.Incident
+	err = cursor.All(ctx, &activeIncidents)
 	return activeIncidents, err
+}
+
+func (db *incidentRepository) ListActiveIncidentsByMonitors(monitorIDs []string) ([]*models.Incident, error) {
+	return db.listIncidentsByMonitors(monitorIDs, "active", 100)
+}
+
+func (db *incidentRepository) ListResolvedIncidentsByMonitors(monitorIDs []string, limit int64) ([]*models.Incident, error) {
+	return db.listIncidentsByMonitors(monitorIDs, "resolved", limit)
+}
+
+func (db *incidentRepository) listIncidentsByMonitors(monitorIDs []string, incidentStatus string, limit int64) ([]*models.Incident, error) {
+	collection := incidentCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if len(monitorIDs) == 0 {
+		return []*models.Incident{}, nil
+	}
+
+	if limit <= 0 {
+		limit = 20
+	}
+
+	filter := bson.M{
+		"monitorId": bson.M{"$in": monitorIDs},
+		"status":    incidentStatus,
+	}
+
+	opts := options.Find().
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "startedAt", Value: -1}})
+
+	cursor, err := collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var incidents []*models.Incident
+	err = cursor.All(ctx, &incidents)
+	return incidents, err
 }
 
 func (db *incidentRepository) GetActiveIncidentForMonitor(monitorID primitive.ObjectID) (*models.Incident, error) {
@@ -82,7 +146,7 @@ func (db *incidentRepository) GetActiveIncidentForMonitor(monitorID primitive.Ob
 
 	var incident models.Incident
 	err := collection.FindOne(ctx, bson.M{
-		"monitorId": monitorID,
+		"monitorId": monitorID.Hex(),
 		"status":    "active",
 	}).Decode(&incident)
 
@@ -106,7 +170,7 @@ func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectI
 
 	var incident models.Incident
 	err := collection.FindOne(ctx, bson.M{
-		"monitorId": monitorID,
+		"monitorId": monitorID.Hex(),
 		"status":    "active",
 	}).Decode(&incident)
 
@@ -121,14 +185,14 @@ func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectI
 	duration := int64(now.Sub(incident.StartedAt).Seconds())
 
 	_, err = collection.UpdateByID(ctx, incident.Id, bson.M{
-       "$set": bson.M{
-		"status": "resolved",
-		"resolvedAt": now,
-		"durationSeconds": duration,
-		"updatedAt": now,
-	   },
+		"$set": bson.M{
+			"status":          "resolved",
+			"resolvedAt":      now,
+			"durationSeconds": duration,
+			"updatedAt":       now,
+		},
 	})
-  
-   return err
+
+	return err
 
 }

@@ -316,6 +316,7 @@ const (
 	MonitorService_GetMonitor_FullMethodName    = "/proto.MonitorService/GetMonitor"
 	MonitorService_ListMonitors_FullMethodName  = "/proto.MonitorService/ListMonitors"
 	MonitorService_DeleteMonitor_FullMethodName = "/proto.MonitorService/DeleteMonitor"
+	MonitorService_GetStatusPage_FullMethodName = "/proto.MonitorService/GetStatusPage"
 )
 
 // MonitorServiceClient is the client API for MonitorService service.
@@ -327,6 +328,7 @@ type MonitorServiceClient interface {
 	GetMonitor(ctx context.Context, in *GetMonitorRequest, opts ...grpc.CallOption) (*MonitorResponse, error)
 	ListMonitors(ctx context.Context, in *ListMonitorsRequest, opts ...grpc.CallOption) (*ListMonitorsResponse, error)
 	DeleteMonitor(ctx context.Context, in *DeleteMonitorRequest, opts ...grpc.CallOption) (*DeleteMonitorResponse, error)
+	GetStatusPage(ctx context.Context, in *GetStatusPageRequest, opts ...grpc.CallOption) (*GetStatusPageResponse, error)
 }
 
 type monitorServiceClient struct {
@@ -387,6 +389,16 @@ func (c *monitorServiceClient) DeleteMonitor(ctx context.Context, in *DeleteMoni
 	return out, nil
 }
 
+func (c *monitorServiceClient) GetStatusPage(ctx context.Context, in *GetStatusPageRequest, opts ...grpc.CallOption) (*GetStatusPageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStatusPageResponse)
+	err := c.cc.Invoke(ctx, MonitorService_GetStatusPage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MonitorServiceServer is the server API for MonitorService service.
 // All implementations must embed UnimplementedMonitorServiceServer
 // for forward compatibility.
@@ -396,6 +408,7 @@ type MonitorServiceServer interface {
 	GetMonitor(context.Context, *GetMonitorRequest) (*MonitorResponse, error)
 	ListMonitors(context.Context, *ListMonitorsRequest) (*ListMonitorsResponse, error)
 	DeleteMonitor(context.Context, *DeleteMonitorRequest) (*DeleteMonitorResponse, error)
+	GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error)
 	mustEmbedUnimplementedMonitorServiceServer()
 }
 
@@ -420,6 +433,9 @@ func (UnimplementedMonitorServiceServer) ListMonitors(context.Context, *ListMoni
 }
 func (UnimplementedMonitorServiceServer) DeleteMonitor(context.Context, *DeleteMonitorRequest) (*DeleteMonitorResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteMonitor not implemented")
+}
+func (UnimplementedMonitorServiceServer) GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetStatusPage not implemented")
 }
 func (UnimplementedMonitorServiceServer) mustEmbedUnimplementedMonitorServiceServer() {}
 func (UnimplementedMonitorServiceServer) testEmbeddedByValue()                        {}
@@ -532,6 +548,24 @@ func _MonitorService_DeleteMonitor_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MonitorService_GetStatusPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatusPageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServiceServer).GetStatusPage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitorService_GetStatusPage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServiceServer).GetStatusPage(ctx, req.(*GetStatusPageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MonitorService_ServiceDesc is the grpc.ServiceDesc for MonitorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -558,6 +592,10 @@ var MonitorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMonitor",
 			Handler:    _MonitorService_DeleteMonitor_Handler,
+		},
+		{
+			MethodName: "GetStatusPage",
+			Handler:    _MonitorService_GetStatusPage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

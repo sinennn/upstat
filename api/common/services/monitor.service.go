@@ -14,12 +14,16 @@ import (
 
 type MonitorServiceServer struct {
 	pb.UnimplementedMonitorServiceServer
-	MonitorRepo repositories.MonitorRepository
+	MonitorRepo     repositories.MonitorRepository
+	CheckResultRepo repositories.CheckResultRepository
+	IncidentRepo    repositories.IncidentRepository
 }
 
 func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
 	return &MonitorServiceServer{
-		MonitorRepo: repositories.NewMonitorRepository(db),
+		MonitorRepo:     repositories.NewMonitorRepository(db),
+		CheckResultRepo: repositories.NewCheckResultRepository(db),
+		IncidentRepo:    repositories.NewIncidentRepository(db),
 	}
 }
 
@@ -159,6 +163,86 @@ func (s *MonitorServiceServer) ListMonitors(ctx context.Context, req *pb.ListMon
 
 }
 
+func (s *MonitorServiceServer) GetStatusPage(
+	ctx context.Context,
+	req *pb.GetStatusPageRequest,
+) (*pb.GetStatusPageResponse, error) {
+	if req.GetOwnerId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "owner_id is required")
+	}
+	monitors, err := s.MonitorRepo.ListMonitors(req.GetOwnerId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not list monitors")
+	}
+
+	monitorIDs := monitorIDs(monitors)
+
+	activeIncidents, err := s.IncidentRepo.ListActiveIncidentsByMonitors(monitorIDs)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not list active incidents")
+	}
+
+	historicalIncidents, err := s.IncidentRepo.ListResolvedIncidentsByMonitors(monitorIDs, 50)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not list historical incidents")
+	}
+
+	totalChecks, successfulChecks, uptimePercentage, err := s.recentUptimeStats(monitors)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not calculate uptime statistics")
+	}
+
+	return &pb.GetStatusPageResponse{
+		Monitors:            monitorsResponse(monitors),
+		ActiveIncidents:     incidentsResponse(activeIncidents),
+		HistoricalIncidents: incidentsResponse(historicalIncidents),
+		UptimePercentage:    uptimePercentage,
+		TotalChecks:         totalChecks,
+		SuccessfulChecks:    successfulChecks,
+	}, nil
+}
+
+func (s *MonitorServiceServer) recentUptimeStats(monitors []*models.Monitor) (int64, int64, float64, error) {
+	since := time.Now().Add(-24 * time.Hour)
+
+	var totalChecks int64
+	var successfulChecks int64
+
+	for _, monitor := range monitors {
+		monitorID := monitor.Id.Hex()
+
+		total, err := s.CheckResultRepo.CountTotalSince(monitorID, since)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+
+		successful, err := s.CheckResultRepo.CountSuccessfulSince(monitorID, since)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+
+		totalChecks += total
+		successfulChecks += successful
+	}
+
+	if totalChecks == 0 {
+		return 0, 0, 0, nil
+	}
+
+	uptimePercentage := (float64(successfulChecks) / float64(totalChecks)) * 100
+	return totalChecks, successfulChecks, uptimePercentage, nil
+}
+
+func monitorIDs(monitors []*models.Monitor) []string {
+	ids := make([]string, 0, len(monitors))
+
+	for _, monitor := range monitors {
+		ids = append(ids, monitor.Id.Hex())
+	}
+
+	return ids
+}
+
 func monitorsResponse(monitors []*models.Monitor) []*pb.Monitor {
 	response := make([]*pb.Monitor, 0, len(monitors))
 
@@ -170,13 +254,55 @@ func monitorsResponse(monitors []*models.Monitor) []*pb.Monitor {
 }
 
 func monitorResponse(monitor *models.Monitor) *pb.Monitor {
+	lastCheckedAt := ""
+	if monitor.LastCheckedAt != nil {
+		lastCheckedAt = monitor.LastCheckedAt.Format(time.RFC3339)
+	}
+
 	return &pb.Monitor{
-		Id:        monitor.Id.Hex(),
-		OwnerId:   monitor.OwnerId,
-		Name:      monitor.Name,
-		Target:    monitor.Target,
-		Type:      monitor.Type,
-		CreatedAt: monitor.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: monitor.UpdatedAt.Format(time.RFC3339),
+		Id:                  monitor.Id.Hex(),
+		OwnerId:             monitor.OwnerId,
+		Name:                monitor.Name,
+		Target:              monitor.Target,
+		Type:                monitor.Type,
+		CreatedAt:           monitor.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:           monitor.UpdatedAt.Format(time.RFC3339),
+		Active:              monitor.Active,
+		Status:              monitor.Status,
+		IntervalSeconds:     int32(monitor.IntervalSeconds),
+		TimeoutSeconds:      int32(monitor.TimeoutSeconds),
+		FailureThreshold:    int32(monitor.FailureThreshold),
+		ConsecutiveFailures: int32(monitor.ConsecutiveFailures),
+		LastCheckedAt:       lastCheckedAt,
+		LastResponseTimeMs:  monitor.LastResponseTimeMs,
+		LastStatusCode:      int32(monitor.LastStatusCode),
+	}
+}
+
+func incidentsResponse(incidents []*models.Incident) []*pb.Incident {
+	response := make([]*pb.Incident, 0, len(incidents))
+
+	for _, incident := range incidents {
+		response = append(response, incidentResponse(incident))
+	}
+
+	return response
+}
+
+func incidentResponse(incident *models.Incident) *pb.Incident {
+	resolvedAt := ""
+	if incident.ResolvedAt != nil {
+		resolvedAt = incident.ResolvedAt.Format(time.RFC3339)
+	}
+
+	return &pb.Incident{
+		Id:              incident.Id.Hex(),
+		MonitorId:       incident.MonitorID,
+		Title:           incident.Title,
+		FailureReason:   incident.FailureReason,
+		Status:          incident.Status,
+		StartedAt:       incident.StartedAt.Format(time.RFC3339),
+		ResolvedAt:      resolvedAt,
+		DurationSeconds: incident.DurationSeconds,
 	}
 }

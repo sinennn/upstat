@@ -19,6 +19,7 @@ type MonitorRepository interface {
 	ListActiveMonitors() ([]*models.Monitor, error)
 	UpdateMonitor(id string, ownerID string, monitor models.Monitor) (*models.Monitor, error)
 	DeleteMonitor(id string, ownerID string) (*mongo.DeleteResult, error)
+    UpdateAfterCheck(monitorID primitive.ObjectID, status string, statusCode int, responseTimeMs int64, consecutiveFailures int) error
 }
 
 type monitorRepository struct {

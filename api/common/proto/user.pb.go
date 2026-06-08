@@ -21,22 +21,259 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Monitor struct {
+type GetStatusPageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
-	Target        string                 `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *GetStatusPageRequest) Reset() {
+	*x = GetStatusPageRequest{}
+	mi := &file_proto_user_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatusPageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatusPageRequest) ProtoMessage() {}
+
+func (x *GetStatusPageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatusPageRequest.ProtoReflect.Descriptor instead.
+func (*GetStatusPageRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetStatusPageRequest) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
+type GetStatusPageResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Monitors            []*Monitor             `protobuf:"bytes,1,rep,name=monitors,proto3" json:"monitors,omitempty"`
+	ActiveIncidents     []*Incident            `protobuf:"bytes,2,rep,name=active_incidents,json=activeIncidents,proto3" json:"active_incidents,omitempty"`
+	HistoricalIncidents []*Incident            `protobuf:"bytes,3,rep,name=historical_incidents,json=historicalIncidents,proto3" json:"historical_incidents,omitempty"`
+	UptimePercentage    float64                `protobuf:"fixed64,4,opt,name=uptime_percentage,json=uptimePercentage,proto3" json:"uptime_percentage,omitempty"`
+	TotalChecks         int64                  `protobuf:"varint,5,opt,name=total_checks,json=totalChecks,proto3" json:"total_checks,omitempty"`
+	SuccessfulChecks    int64                  `protobuf:"varint,6,opt,name=successful_checks,json=successfulChecks,proto3" json:"successful_checks,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetStatusPageResponse) Reset() {
+	*x = GetStatusPageResponse{}
+	mi := &file_proto_user_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatusPageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatusPageResponse) ProtoMessage() {}
+
+func (x *GetStatusPageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatusPageResponse.ProtoReflect.Descriptor instead.
+func (*GetStatusPageResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetStatusPageResponse) GetMonitors() []*Monitor {
+	if x != nil {
+		return x.Monitors
+	}
+	return nil
+}
+
+func (x *GetStatusPageResponse) GetActiveIncidents() []*Incident {
+	if x != nil {
+		return x.ActiveIncidents
+	}
+	return nil
+}
+
+func (x *GetStatusPageResponse) GetHistoricalIncidents() []*Incident {
+	if x != nil {
+		return x.HistoricalIncidents
+	}
+	return nil
+}
+
+func (x *GetStatusPageResponse) GetUptimePercentage() float64 {
+	if x != nil {
+		return x.UptimePercentage
+	}
+	return 0
+}
+
+func (x *GetStatusPageResponse) GetTotalChecks() int64 {
+	if x != nil {
+		return x.TotalChecks
+	}
+	return 0
+}
+
+func (x *GetStatusPageResponse) GetSuccessfulChecks() int64 {
+	if x != nil {
+		return x.SuccessfulChecks
+	}
+	return 0
+}
+
+type Incident struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	MonitorId       string                 `protobuf:"bytes,2,opt,name=monitor_id,json=monitorId,proto3" json:"monitor_id,omitempty"`
+	Title           string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	FailureReason   string                 `protobuf:"bytes,4,opt,name=failure_reason,json=failureReason,proto3" json:"failure_reason,omitempty"`
+	Status          string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	StartedAt       string                 `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	ResolvedAt      string                 `protobuf:"bytes,7,opt,name=resolved_at,json=resolvedAt,proto3" json:"resolved_at,omitempty"`
+	DurationSeconds int64                  `protobuf:"varint,8,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *Incident) Reset() {
+	*x = Incident{}
+	mi := &file_proto_user_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Incident) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Incident) ProtoMessage() {}
+
+func (x *Incident) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Incident.ProtoReflect.Descriptor instead.
+func (*Incident) Descriptor() ([]byte, []int) {
+	return file_proto_user_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Incident) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Incident) GetMonitorId() string {
+	if x != nil {
+		return x.MonitorId
+	}
+	return ""
+}
+
+func (x *Incident) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Incident) GetFailureReason() string {
+	if x != nil {
+		return x.FailureReason
+	}
+	return ""
+}
+
+func (x *Incident) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Incident) GetStartedAt() string {
+	if x != nil {
+		return x.StartedAt
+	}
+	return ""
+}
+
+func (x *Incident) GetResolvedAt() string {
+	if x != nil {
+		return x.ResolvedAt
+	}
+	return ""
+}
+
+func (x *Incident) GetDurationSeconds() int64 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+type Monitor struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OwnerId             string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Name                string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Type                string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	Target              string                 `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Active              bool                   `protobuf:"varint,8,opt,name=active,proto3" json:"active,omitempty"`
+	Status              string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	IntervalSeconds     int32                  `protobuf:"varint,10,opt,name=interval_seconds,json=intervalSeconds,proto3" json:"interval_seconds,omitempty"`
+	TimeoutSeconds      int32                  `protobuf:"varint,11,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
+	FailureThreshold    int32                  `protobuf:"varint,12,opt,name=failure_threshold,json=failureThreshold,proto3" json:"failure_threshold,omitempty"`
+	ConsecutiveFailures int32                  `protobuf:"varint,13,opt,name=consecutive_failures,json=consecutiveFailures,proto3" json:"consecutive_failures,omitempty"`
+	LastCheckedAt       string                 `protobuf:"bytes,14,opt,name=last_checked_at,json=lastCheckedAt,proto3" json:"last_checked_at,omitempty"`
+	LastResponseTimeMs  int64                  `protobuf:"varint,15,opt,name=last_response_time_ms,json=lastResponseTimeMs,proto3" json:"last_response_time_ms,omitempty"`
+	LastStatusCode      int32                  `protobuf:"varint,16,opt,name=last_status_code,json=lastStatusCode,proto3" json:"last_status_code,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
 func (x *Monitor) Reset() {
 	*x = Monitor{}
-	mi := &file_proto_user_proto_msgTypes[0]
+	mi := &file_proto_user_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +285,7 @@ func (x *Monitor) String() string {
 func (*Monitor) ProtoMessage() {}
 
 func (x *Monitor) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[0]
+	mi := &file_proto_user_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +298,7 @@ func (x *Monitor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Monitor.ProtoReflect.Descriptor instead.
 func (*Monitor) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{0}
+	return file_proto_user_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Monitor) GetId() string {
@@ -113,6 +350,69 @@ func (x *Monitor) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *Monitor) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+func (x *Monitor) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Monitor) GetIntervalSeconds() int32 {
+	if x != nil {
+		return x.IntervalSeconds
+	}
+	return 0
+}
+
+func (x *Monitor) GetTimeoutSeconds() int32 {
+	if x != nil {
+		return x.TimeoutSeconds
+	}
+	return 0
+}
+
+func (x *Monitor) GetFailureThreshold() int32 {
+	if x != nil {
+		return x.FailureThreshold
+	}
+	return 0
+}
+
+func (x *Monitor) GetConsecutiveFailures() int32 {
+	if x != nil {
+		return x.ConsecutiveFailures
+	}
+	return 0
+}
+
+func (x *Monitor) GetLastCheckedAt() string {
+	if x != nil {
+		return x.LastCheckedAt
+	}
+	return ""
+}
+
+func (x *Monitor) GetLastResponseTimeMs() int64 {
+	if x != nil {
+		return x.LastResponseTimeMs
+	}
+	return 0
+}
+
+func (x *Monitor) GetLastStatusCode() int32 {
+	if x != nil {
+		return x.LastStatusCode
+	}
+	return 0
+}
+
 type CreateMonitorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -124,7 +424,7 @@ type CreateMonitorRequest struct {
 
 func (x *CreateMonitorRequest) Reset() {
 	*x = CreateMonitorRequest{}
-	mi := &file_proto_user_proto_msgTypes[1]
+	mi := &file_proto_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -136,7 +436,7 @@ func (x *CreateMonitorRequest) String() string {
 func (*CreateMonitorRequest) ProtoMessage() {}
 
 func (x *CreateMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[1]
+	mi := &file_proto_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -149,7 +449,7 @@ func (x *CreateMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMonitorRequest.ProtoReflect.Descriptor instead.
 func (*CreateMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{1}
+	return file_proto_user_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateMonitorRequest) GetName() string {
@@ -185,7 +485,7 @@ type UpdateMonitorRequest struct {
 
 func (x *UpdateMonitorRequest) Reset() {
 	*x = UpdateMonitorRequest{}
-	mi := &file_proto_user_proto_msgTypes[2]
+	mi := &file_proto_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -197,7 +497,7 @@ func (x *UpdateMonitorRequest) String() string {
 func (*UpdateMonitorRequest) ProtoMessage() {}
 
 func (x *UpdateMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[2]
+	mi := &file_proto_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -210,7 +510,7 @@ func (x *UpdateMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMonitorRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{2}
+	return file_proto_user_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateMonitorRequest) GetId() string {
@@ -250,7 +550,7 @@ type GetMonitorRequest struct {
 
 func (x *GetMonitorRequest) Reset() {
 	*x = GetMonitorRequest{}
-	mi := &file_proto_user_proto_msgTypes[3]
+	mi := &file_proto_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -262,7 +562,7 @@ func (x *GetMonitorRequest) String() string {
 func (*GetMonitorRequest) ProtoMessage() {}
 
 func (x *GetMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[3]
+	mi := &file_proto_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -275,7 +575,7 @@ func (x *GetMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMonitorRequest.ProtoReflect.Descriptor instead.
 func (*GetMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{3}
+	return file_proto_user_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetMonitorRequest) GetId() string {
@@ -295,7 +595,7 @@ type MonitorResponse struct {
 
 func (x *MonitorResponse) Reset() {
 	*x = MonitorResponse{}
-	mi := &file_proto_user_proto_msgTypes[4]
+	mi := &file_proto_user_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -307,7 +607,7 @@ func (x *MonitorResponse) String() string {
 func (*MonitorResponse) ProtoMessage() {}
 
 func (x *MonitorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[4]
+	mi := &file_proto_user_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +620,7 @@ func (x *MonitorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorResponse.ProtoReflect.Descriptor instead.
 func (*MonitorResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{4}
+	return file_proto_user_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *MonitorResponse) GetMonitor() *Monitor {
@@ -346,7 +646,7 @@ type DeleteMonitorRequest struct {
 
 func (x *DeleteMonitorRequest) Reset() {
 	*x = DeleteMonitorRequest{}
-	mi := &file_proto_user_proto_msgTypes[5]
+	mi := &file_proto_user_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +658,7 @@ func (x *DeleteMonitorRequest) String() string {
 func (*DeleteMonitorRequest) ProtoMessage() {}
 
 func (x *DeleteMonitorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[5]
+	mi := &file_proto_user_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,7 +671,7 @@ func (x *DeleteMonitorRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMonitorRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMonitorRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{5}
+	return file_proto_user_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteMonitorRequest) GetId() string {
@@ -391,7 +691,7 @@ type DeleteMonitorResponse struct {
 
 func (x *DeleteMonitorResponse) Reset() {
 	*x = DeleteMonitorResponse{}
-	mi := &file_proto_user_proto_msgTypes[6]
+	mi := &file_proto_user_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -403,7 +703,7 @@ func (x *DeleteMonitorResponse) String() string {
 func (*DeleteMonitorResponse) ProtoMessage() {}
 
 func (x *DeleteMonitorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[6]
+	mi := &file_proto_user_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -416,7 +716,7 @@ func (x *DeleteMonitorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMonitorResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMonitorResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{6}
+	return file_proto_user_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteMonitorResponse) GetData() string {
@@ -441,7 +741,7 @@ type ListMonitorsRequest struct {
 
 func (x *ListMonitorsRequest) Reset() {
 	*x = ListMonitorsRequest{}
-	mi := &file_proto_user_proto_msgTypes[7]
+	mi := &file_proto_user_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -453,7 +753,7 @@ func (x *ListMonitorsRequest) String() string {
 func (*ListMonitorsRequest) ProtoMessage() {}
 
 func (x *ListMonitorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[7]
+	mi := &file_proto_user_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -466,7 +766,7 @@ func (x *ListMonitorsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMonitorsRequest.ProtoReflect.Descriptor instead.
 func (*ListMonitorsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{7}
+	return file_proto_user_proto_rawDescGZIP(), []int{10}
 }
 
 type ListMonitorsResponse struct {
@@ -478,7 +778,7 @@ type ListMonitorsResponse struct {
 
 func (x *ListMonitorsResponse) Reset() {
 	*x = ListMonitorsResponse{}
-	mi := &file_proto_user_proto_msgTypes[8]
+	mi := &file_proto_user_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +790,7 @@ func (x *ListMonitorsResponse) String() string {
 func (*ListMonitorsResponse) ProtoMessage() {}
 
 func (x *ListMonitorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[8]
+	mi := &file_proto_user_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,7 +803,7 @@ func (x *ListMonitorsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMonitorsResponse.ProtoReflect.Descriptor instead.
 func (*ListMonitorsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{8}
+	return file_proto_user_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListMonitorsResponse) GetMonitors() []*Monitor {
@@ -523,7 +823,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_proto_user_proto_msgTypes[9]
+	mi := &file_proto_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -535,7 +835,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[9]
+	mi := &file_proto_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -548,7 +848,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{9}
+	return file_proto_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUserRequest) GetEmail() string {
@@ -574,7 +874,7 @@ type GoogleAuthRequest struct {
 
 func (x *GoogleAuthRequest) Reset() {
 	*x = GoogleAuthRequest{}
-	mi := &file_proto_user_proto_msgTypes[10]
+	mi := &file_proto_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -586,7 +886,7 @@ func (x *GoogleAuthRequest) String() string {
 func (*GoogleAuthRequest) ProtoMessage() {}
 
 func (x *GoogleAuthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[10]
+	mi := &file_proto_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -599,7 +899,7 @@ func (x *GoogleAuthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleAuthRequest.ProtoReflect.Descriptor instead.
 func (*GoogleAuthRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{10}
+	return file_proto_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GoogleAuthRequest) GetIdToken() string {
@@ -623,7 +923,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_proto_user_proto_msgTypes[11]
+	mi := &file_proto_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +935,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[11]
+	mi := &file_proto_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -648,7 +948,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{11}
+	return file_proto_user_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetUserResponse) GetId() string {
@@ -704,7 +1004,7 @@ type CreateUserRequest struct {
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_proto_user_proto_msgTypes[12]
+	mi := &file_proto_user_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +1016,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[12]
+	mi := &file_proto_user_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +1029,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{12}
+	return file_proto_user_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateUserRequest) GetName() string {
@@ -763,7 +1063,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_proto_user_proto_msgTypes[13]
+	mi := &file_proto_user_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -775,7 +1075,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[13]
+	mi := &file_proto_user_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -788,7 +1088,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{13}
+	return file_proto_user_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateUserResponse) GetData() string {
@@ -817,7 +1117,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_proto_user_proto_msgTypes[14]
+	mi := &file_proto_user_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -829,7 +1129,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[14]
+	mi := &file_proto_user_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -842,7 +1142,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{14}
+	return file_proto_user_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateUserRequest) GetId() string {
@@ -883,7 +1183,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_proto_user_proto_msgTypes[15]
+	mi := &file_proto_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -895,7 +1195,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[15]
+	mi := &file_proto_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -908,7 +1208,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{15}
+	return file_proto_user_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateUserResponse) GetData() string {
@@ -934,7 +1234,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_proto_user_proto_msgTypes[16]
+	mi := &file_proto_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -946,7 +1246,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[16]
+	mi := &file_proto_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -959,7 +1259,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{16}
+	return file_proto_user_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteUserRequest) GetId() string {
@@ -979,7 +1279,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_proto_user_proto_msgTypes[17]
+	mi := &file_proto_user_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -991,7 +1291,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[17]
+	mi := &file_proto_user_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1004,7 +1304,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{17}
+	return file_proto_user_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteUserResponse) GetData() string {
@@ -1029,7 +1329,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_proto_user_proto_msgTypes[18]
+	mi := &file_proto_user_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +1341,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[18]
+	mi := &file_proto_user_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +1354,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{18}
+	return file_proto_user_proto_rawDescGZIP(), []int{21}
 }
 
 type GetAllUsersResponse struct {
@@ -1066,7 +1366,7 @@ type GetAllUsersResponse struct {
 
 func (x *GetAllUsersResponse) Reset() {
 	*x = GetAllUsersResponse{}
-	mi := &file_proto_user_proto_msgTypes[19]
+	mi := &file_proto_user_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1078,7 +1378,7 @@ func (x *GetAllUsersResponse) String() string {
 func (*GetAllUsersResponse) ProtoMessage() {}
 
 func (x *GetAllUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_user_proto_msgTypes[19]
+	mi := &file_proto_user_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1091,7 +1391,7 @@ func (x *GetAllUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllUsersResponse.ProtoReflect.Descriptor instead.
 func (*GetAllUsersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_user_proto_rawDescGZIP(), []int{19}
+	return file_proto_user_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetAllUsersResponse) GetUsers() []*GetUserResponse {
@@ -1105,7 +1405,28 @@ var File_proto_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/user.proto\x12\x05proto\"\xb2\x01\n" +
+	"\x10proto/user.proto\x12\x05proto\"1\n" +
+	"\x14GetStatusPageRequest\x12\x19\n" +
+	"\bowner_id\x18\x01 \x01(\tR\aownerId\"\xc0\x02\n" +
+	"\x15GetStatusPageResponse\x12*\n" +
+	"\bmonitors\x18\x01 \x03(\v2\x0e.proto.MonitorR\bmonitors\x12:\n" +
+	"\x10active_incidents\x18\x02 \x03(\v2\x0f.proto.IncidentR\x0factiveIncidents\x12B\n" +
+	"\x14historical_incidents\x18\x03 \x03(\v2\x0f.proto.IncidentR\x13historicalIncidents\x12+\n" +
+	"\x11uptime_percentage\x18\x04 \x01(\x01R\x10uptimePercentage\x12!\n" +
+	"\ftotal_checks\x18\x05 \x01(\x03R\vtotalChecks\x12+\n" +
+	"\x11successful_checks\x18\x06 \x01(\x03R\x10successfulChecks\"\xf9\x01\n" +
+	"\bIncident\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"monitor_id\x18\x02 \x01(\tR\tmonitorId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12%\n" +
+	"\x0efailure_reason\x18\x04 \x01(\tR\rfailureReason\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x06 \x01(\tR\tstartedAt\x12\x1f\n" +
+	"\vresolved_at\x18\a \x01(\tR\n" +
+	"resolvedAt\x12)\n" +
+	"\x10duration_seconds\x18\b \x01(\x03R\x0fdurationSeconds\"\x9b\x04\n" +
 	"\aMonitor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
@@ -1115,7 +1436,17 @@ const file_proto_user_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"V\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x16\n" +
+	"\x06active\x18\b \x01(\bR\x06active\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12)\n" +
+	"\x10interval_seconds\x18\n" +
+	" \x01(\x05R\x0fintervalSeconds\x12'\n" +
+	"\x0ftimeout_seconds\x18\v \x01(\x05R\x0etimeoutSeconds\x12+\n" +
+	"\x11failure_threshold\x18\f \x01(\x05R\x10failureThreshold\x121\n" +
+	"\x14consecutive_failures\x18\r \x01(\x05R\x13consecutiveFailures\x12&\n" +
+	"\x0flast_checked_at\x18\x0e \x01(\tR\rlastCheckedAt\x121\n" +
+	"\x15last_response_time_ms\x18\x0f \x01(\x03R\x12lastResponseTimeMs\x12(\n" +
+	"\x10last_status_code\x18\x10 \x01(\x05R\x0elastStatusCode\"V\n" +
 	"\x14CreateMonitorRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x16\n" +
@@ -1183,14 +1514,15 @@ const file_proto_user_proto_rawDesc = "" +
 	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\x19.proto.UpdateUserResponse\x12A\n" +
 	"\n" +
 	"DeleteUser\x12\x18.proto.DeleteUserRequest\x1a\x19.proto.DeleteUserResponse\x127\n" +
-	"\vGetAllUsers\x12\f.proto.Empty\x1a\x1a.proto.GetAllUsersResponse2\xf1\x02\n" +
+	"\vGetAllUsers\x12\f.proto.Empty\x1a\x1a.proto.GetAllUsersResponse2\xbd\x03\n" +
 	"\x0eMonitorService\x12D\n" +
 	"\rCreateMonitor\x12\x1b.proto.CreateMonitorRequest\x1a\x16.proto.MonitorResponse\x12D\n" +
 	"\rUpdateMonitor\x12\x1b.proto.UpdateMonitorRequest\x1a\x16.proto.MonitorResponse\x12>\n" +
 	"\n" +
 	"GetMonitor\x12\x18.proto.GetMonitorRequest\x1a\x16.proto.MonitorResponse\x12G\n" +
 	"\fListMonitors\x12\x1a.proto.ListMonitorsRequest\x1a\x1b.proto.ListMonitorsResponse\x12J\n" +
-	"\rDeleteMonitor\x12\x1b.proto.DeleteMonitorRequest\x1a\x1c.proto.DeleteMonitorResponseB&Z$github.com/CuesoftCloud/upstat/protob\x06proto3"
+	"\rDeleteMonitor\x12\x1b.proto.DeleteMonitorRequest\x1a\x1c.proto.DeleteMonitorResponse\x12J\n" +
+	"\rGetStatusPage\x12\x1b.proto.GetStatusPageRequest\x1a\x1c.proto.GetStatusPageResponseB&Z$github.com/CuesoftCloud/upstat/protob\x06proto3"
 
 var (
 	file_proto_user_proto_rawDescOnce sync.Once
@@ -1204,60 +1536,68 @@ func file_proto_user_proto_rawDescGZIP() []byte {
 	return file_proto_user_proto_rawDescData
 }
 
-var file_proto_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_proto_user_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_proto_user_proto_goTypes = []any{
-	(*Monitor)(nil),               // 0: proto.Monitor
-	(*CreateMonitorRequest)(nil),  // 1: proto.CreateMonitorRequest
-	(*UpdateMonitorRequest)(nil),  // 2: proto.UpdateMonitorRequest
-	(*GetMonitorRequest)(nil),     // 3: proto.GetMonitorRequest
-	(*MonitorResponse)(nil),       // 4: proto.MonitorResponse
-	(*DeleteMonitorRequest)(nil),  // 5: proto.DeleteMonitorRequest
-	(*DeleteMonitorResponse)(nil), // 6: proto.DeleteMonitorResponse
-	(*ListMonitorsRequest)(nil),   // 7: proto.ListMonitorsRequest
-	(*ListMonitorsResponse)(nil),  // 8: proto.ListMonitorsResponse
-	(*GetUserRequest)(nil),        // 9: proto.GetUserRequest
-	(*GoogleAuthRequest)(nil),     // 10: proto.GoogleAuthRequest
-	(*GetUserResponse)(nil),       // 11: proto.GetUserResponse
-	(*CreateUserRequest)(nil),     // 12: proto.CreateUserRequest
-	(*CreateUserResponse)(nil),    // 13: proto.CreateUserResponse
-	(*UpdateUserRequest)(nil),     // 14: proto.UpdateUserRequest
-	(*UpdateUserResponse)(nil),    // 15: proto.UpdateUserResponse
-	(*DeleteUserRequest)(nil),     // 16: proto.DeleteUserRequest
-	(*DeleteUserResponse)(nil),    // 17: proto.DeleteUserResponse
-	(*Empty)(nil),                 // 18: proto.Empty
-	(*GetAllUsersResponse)(nil),   // 19: proto.GetAllUsersResponse
+	(*GetStatusPageRequest)(nil),  // 0: proto.GetStatusPageRequest
+	(*GetStatusPageResponse)(nil), // 1: proto.GetStatusPageResponse
+	(*Incident)(nil),              // 2: proto.Incident
+	(*Monitor)(nil),               // 3: proto.Monitor
+	(*CreateMonitorRequest)(nil),  // 4: proto.CreateMonitorRequest
+	(*UpdateMonitorRequest)(nil),  // 5: proto.UpdateMonitorRequest
+	(*GetMonitorRequest)(nil),     // 6: proto.GetMonitorRequest
+	(*MonitorResponse)(nil),       // 7: proto.MonitorResponse
+	(*DeleteMonitorRequest)(nil),  // 8: proto.DeleteMonitorRequest
+	(*DeleteMonitorResponse)(nil), // 9: proto.DeleteMonitorResponse
+	(*ListMonitorsRequest)(nil),   // 10: proto.ListMonitorsRequest
+	(*ListMonitorsResponse)(nil),  // 11: proto.ListMonitorsResponse
+	(*GetUserRequest)(nil),        // 12: proto.GetUserRequest
+	(*GoogleAuthRequest)(nil),     // 13: proto.GoogleAuthRequest
+	(*GetUserResponse)(nil),       // 14: proto.GetUserResponse
+	(*CreateUserRequest)(nil),     // 15: proto.CreateUserRequest
+	(*CreateUserResponse)(nil),    // 16: proto.CreateUserResponse
+	(*UpdateUserRequest)(nil),     // 17: proto.UpdateUserRequest
+	(*UpdateUserResponse)(nil),    // 18: proto.UpdateUserResponse
+	(*DeleteUserRequest)(nil),     // 19: proto.DeleteUserRequest
+	(*DeleteUserResponse)(nil),    // 20: proto.DeleteUserResponse
+	(*Empty)(nil),                 // 21: proto.Empty
+	(*GetAllUsersResponse)(nil),   // 22: proto.GetAllUsersResponse
 }
 var file_proto_user_proto_depIdxs = []int32{
-	0,  // 0: proto.MonitorResponse.monitor:type_name -> proto.Monitor
-	0,  // 1: proto.ListMonitorsResponse.monitors:type_name -> proto.Monitor
-	11, // 2: proto.GetAllUsersResponse.users:type_name -> proto.GetUserResponse
-	9,  // 3: proto.UserService.GetUser:input_type -> proto.GetUserRequest
-	10, // 4: proto.UserService.GoogleAuth:input_type -> proto.GoogleAuthRequest
-	12, // 5: proto.UserService.CreateUser:input_type -> proto.CreateUserRequest
-	14, // 6: proto.UserService.UpdateUser:input_type -> proto.UpdateUserRequest
-	16, // 7: proto.UserService.DeleteUser:input_type -> proto.DeleteUserRequest
-	18, // 8: proto.UserService.GetAllUsers:input_type -> proto.Empty
-	1,  // 9: proto.MonitorService.CreateMonitor:input_type -> proto.CreateMonitorRequest
-	2,  // 10: proto.MonitorService.UpdateMonitor:input_type -> proto.UpdateMonitorRequest
-	3,  // 11: proto.MonitorService.GetMonitor:input_type -> proto.GetMonitorRequest
-	7,  // 12: proto.MonitorService.ListMonitors:input_type -> proto.ListMonitorsRequest
-	5,  // 13: proto.MonitorService.DeleteMonitor:input_type -> proto.DeleteMonitorRequest
-	11, // 14: proto.UserService.GetUser:output_type -> proto.GetUserResponse
-	11, // 15: proto.UserService.GoogleAuth:output_type -> proto.GetUserResponse
-	13, // 16: proto.UserService.CreateUser:output_type -> proto.CreateUserResponse
-	15, // 17: proto.UserService.UpdateUser:output_type -> proto.UpdateUserResponse
-	17, // 18: proto.UserService.DeleteUser:output_type -> proto.DeleteUserResponse
-	19, // 19: proto.UserService.GetAllUsers:output_type -> proto.GetAllUsersResponse
-	4,  // 20: proto.MonitorService.CreateMonitor:output_type -> proto.MonitorResponse
-	4,  // 21: proto.MonitorService.UpdateMonitor:output_type -> proto.MonitorResponse
-	4,  // 22: proto.MonitorService.GetMonitor:output_type -> proto.MonitorResponse
-	8,  // 23: proto.MonitorService.ListMonitors:output_type -> proto.ListMonitorsResponse
-	6,  // 24: proto.MonitorService.DeleteMonitor:output_type -> proto.DeleteMonitorResponse
-	14, // [14:25] is the sub-list for method output_type
-	3,  // [3:14] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	3,  // 0: proto.GetStatusPageResponse.monitors:type_name -> proto.Monitor
+	2,  // 1: proto.GetStatusPageResponse.active_incidents:type_name -> proto.Incident
+	2,  // 2: proto.GetStatusPageResponse.historical_incidents:type_name -> proto.Incident
+	3,  // 3: proto.MonitorResponse.monitor:type_name -> proto.Monitor
+	3,  // 4: proto.ListMonitorsResponse.monitors:type_name -> proto.Monitor
+	14, // 5: proto.GetAllUsersResponse.users:type_name -> proto.GetUserResponse
+	12, // 6: proto.UserService.GetUser:input_type -> proto.GetUserRequest
+	13, // 7: proto.UserService.GoogleAuth:input_type -> proto.GoogleAuthRequest
+	15, // 8: proto.UserService.CreateUser:input_type -> proto.CreateUserRequest
+	17, // 9: proto.UserService.UpdateUser:input_type -> proto.UpdateUserRequest
+	19, // 10: proto.UserService.DeleteUser:input_type -> proto.DeleteUserRequest
+	21, // 11: proto.UserService.GetAllUsers:input_type -> proto.Empty
+	4,  // 12: proto.MonitorService.CreateMonitor:input_type -> proto.CreateMonitorRequest
+	5,  // 13: proto.MonitorService.UpdateMonitor:input_type -> proto.UpdateMonitorRequest
+	6,  // 14: proto.MonitorService.GetMonitor:input_type -> proto.GetMonitorRequest
+	10, // 15: proto.MonitorService.ListMonitors:input_type -> proto.ListMonitorsRequest
+	8,  // 16: proto.MonitorService.DeleteMonitor:input_type -> proto.DeleteMonitorRequest
+	0,  // 17: proto.MonitorService.GetStatusPage:input_type -> proto.GetStatusPageRequest
+	14, // 18: proto.UserService.GetUser:output_type -> proto.GetUserResponse
+	14, // 19: proto.UserService.GoogleAuth:output_type -> proto.GetUserResponse
+	16, // 20: proto.UserService.CreateUser:output_type -> proto.CreateUserResponse
+	18, // 21: proto.UserService.UpdateUser:output_type -> proto.UpdateUserResponse
+	20, // 22: proto.UserService.DeleteUser:output_type -> proto.DeleteUserResponse
+	22, // 23: proto.UserService.GetAllUsers:output_type -> proto.GetAllUsersResponse
+	7,  // 24: proto.MonitorService.CreateMonitor:output_type -> proto.MonitorResponse
+	7,  // 25: proto.MonitorService.UpdateMonitor:output_type -> proto.MonitorResponse
+	7,  // 26: proto.MonitorService.GetMonitor:output_type -> proto.MonitorResponse
+	11, // 27: proto.MonitorService.ListMonitors:output_type -> proto.ListMonitorsResponse
+	9,  // 28: proto.MonitorService.DeleteMonitor:output_type -> proto.DeleteMonitorResponse
+	1,  // 29: proto.MonitorService.GetStatusPage:output_type -> proto.GetStatusPageResponse
+	18, // [18:30] is the sub-list for method output_type
+	6,  // [6:18] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_user_proto_init() }
@@ -1271,7 +1611,7 @@ func file_proto_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_proto_rawDesc), len(file_proto_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
