@@ -32,7 +32,7 @@ type CheckResults struct {
 	MonitorID      string             `json:"MonitorID" bson:"monitorId"`
 	CheckedAt      time.Time          `json:"checkedAt" bson:"checkedAt"`
 	ResponseTimeMs int64              `json:"responseTimeMs" bson:"responseTimeMs"`
-	Status         string             `json:"status" bson:"status"`
+	Status         string             `json:"status" bson:"status"` // up, down
 	StatusCode     int                `json:"statusCode" bson:"statusCode"`
 	Error          string             `json:"error" bson:"error,omitempty"`
 	Attempts       int                `json:"attempts" bson:"attempts"`
