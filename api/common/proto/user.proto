@@ -20,8 +20,32 @@ service MonitorService{
    rpc GetMonitor(GetMonitorRequest) returns (MonitorResponse);
    rpc ListMonitors(ListMonitorsRequest) returns (ListMonitorsResponse);
    rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
+   rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse);
 }
 
+message GetStatusPageRequest{
+ string owner_id = 1;
+}
+
+message GetStatusPageResponse {
+  repeated Monitor monitors = 1;
+  repeated Incident active_incidents = 2;
+  repeated Incident historical_incidents = 3;
+  double uptime_percentage = 4;
+  int64 total_checks = 5;
+  int64 successful_checks = 6;
+}
+
+message Incident {
+  string id = 1;
+  string monitor_id = 2;
+  string title = 3;
+  string failure_reason = 4;
+  string status = 5;
+  string started_at = 6;
+  string resolved_at = 7;
+  int64 duration_seconds = 8;
+}
 
 message Monitor{
   string id = 1;
@@ -31,6 +55,15 @@ message Monitor{
   string target = 5; 
   string created_at = 6;
   string updated_at = 7;
+  bool active = 8;
+  string status = 9;
+  int32 interval_seconds = 10;
+  int32 timeout_seconds = 11;
+  int32 failure_threshold = 12;
+  int32 consecutive_failures = 13;
+  string last_checked_at = 14;
+  int64 last_response_time_ms = 15;
+  int32 last_status_code = 16;
 }
 
 message CreateMonitorRequest{

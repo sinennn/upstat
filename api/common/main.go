@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/CuesoftCloud/upstat/config"
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/services"
@@ -15,6 +16,10 @@ func main() {
 	config.LoadEnv()
 
 	db := config.NewDBHandler()
+
+	ctx := context.Background()
+	worker := services.NewMonitorWorker(db)
+	go worker.Start(ctx)
 
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
