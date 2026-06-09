@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-
+    
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
@@ -158,6 +158,7 @@ func (s *UserServiceServer) GetAllUsers(ctx context.Context, req *pb.Empty) (*pb
 
 	return response, nil
 }
+
 
 func userResponse(user *models.User, token string, responseStatus string) *pb.GetUserResponse {
 	return &pb.GetUserResponse{
