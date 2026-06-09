@@ -6,8 +6,8 @@ import (
 	"github.com/CuesoftCloud/upstat/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"os"
 	"time"
 )
@@ -16,8 +16,10 @@ type MonitorRepository interface {
 	CreateMonitor(monitor models.Monitor) (*models.Monitor, error)
 	GetMonitor(id string, ownerID string) (*models.Monitor, error)
 	ListMonitors(ownerId string) ([]*models.Monitor, error)
+	ListActiveMonitors() ([]*models.Monitor, error)
 	UpdateMonitor(id string, ownerID string, monitor models.Monitor) (*models.Monitor, error)
 	DeleteMonitor(id string, ownerID string) (*mongo.DeleteResult, error)
+	UpdateAfterCheck(monitorID primitive.ObjectID, status string, statusCode int, responseTimeMs int64, consecutiveFailures int) error
 }
 
 type monitorRepository struct {
@@ -91,7 +93,7 @@ func (db *monitorRepository) UpdateMonitor(id string, ownerId string, monitor mo
 		"$set": bson.M{
 			"name":      monitor.Name,
 			"target":    monitor.Target,
-			"type":    monitor.Type,
+			"type":      monitor.Type,
 			"updatedAt": time.Now(),
 		},
 	}
@@ -100,8 +102,8 @@ func (db *monitorRepository) UpdateMonitor(id string, ownerId string, monitor mo
 
 	var updatedMonitor models.Monitor
 
-	err = collection.FindOneAndUpdate (ctx, filter, update,  opts).Decode(&updatedMonitor)
-    if err != nil{
+	err = collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedMonitor)
+	if err != nil {
 		return nil, err
 	}
 
@@ -109,7 +111,6 @@ func (db *monitorRepository) UpdateMonitor(id string, ownerId string, monitor mo
 }
 
 func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.DeleteResult, error) {
-
 	collection := monitorCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -119,14 +120,13 @@ func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.De
 		return nil, err
 	}
 
-
 	delete := bson.M{
 		"_id":     oid,
 		"ownerId": ownerId,
 	}
-  
+
 	deleteResult, err := collection.DeleteOne(ctx, delete)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -134,7 +134,6 @@ func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.De
 }
 
 func (db *monitorRepository) GetMonitor(id string, ownerID string) (*models.Monitor, error) {
-
 	collection := monitorCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -157,4 +156,51 @@ func (db *monitorRepository) GetMonitor(id string, ownerID string) (*models.Moni
 	}
 
 	return &monitor, nil
+}
+
+func (db *monitorRepository) ListActiveMonitors() ([]*models.Monitor, error) {
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	listAllMonitors := bson.M{"active": true}
+
+	cursor, err := collection.Find(ctx, listAllMonitors)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var monitors []*models.Monitor
+	err = cursor.All(ctx, &monitors)
+	return monitors, err
+}
+
+func (db *monitorRepository) UpdateAfterCheck(
+	monitorID primitive.ObjectID,
+	status string,
+	statusCode int,
+	responseTimeMs int64,
+	consecutiveFailures int,
+) error {
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	now := time.Now()
+
+	update := bson.M{
+		"$set": bson.M{
+			"status":              status,
+			"lastCheckedAt":       now,
+			"lastStatusCode":      statusCode,
+			"lastResponseTimeMs":  responseTimeMs,
+			"consecutiveFailures": consecutiveFailures,
+			"updatedAt":           now,
+		},
+	}
+
+	_, err := collection.UpdateByID(ctx, monitorID, update)
+	return err
 }
