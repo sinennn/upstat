@@ -1,5 +1,5 @@
 # Use an official Golang runtime as a parent image
-FROM golang:1.21.3-alpine
+FROM golang:1.25-alpine
 
 # Set the working directory to /app
 WORKDIR /app
