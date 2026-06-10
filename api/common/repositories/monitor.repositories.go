@@ -44,10 +44,10 @@ func (db *monitorRepository) CreateMonitor(monitor models.Monitor) (*models.Moni
 	monitor.UpdatedAt = time.Now()
 
 	_, err := collection.InsertOne(ctx, monitor)
-	if err != nil {
+	if err != nil{
 		return nil, err
 	}
-
+	
 	return &monitor, nil
 }
 

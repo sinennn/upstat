@@ -34,26 +34,25 @@ func NewIncidentRepository(db *config.DB) IncidentRepository {
 	return &incidentRepository{connection: db}
 }
 
-func (db *incidentRepository) CreateIncident(incident *models.Incident) (models.Incident, error) {
-	collection := incidentCollection(db.connection)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (db * incidentRepository) CreateIncident (incident *models.Incident)(models.Incident, error){
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	defer cancel()
 
 	incident.Id = primitive.NewObjectID()
-	incident.StartedAt = time.Now()
 	incident.CreatedAt = time.Now()
 	incident.UpdatedAt = time.Now()
-	if incident.Status == "" {
-		incident.Status = "active"
+	
+	if incident.Status == ""{
+		incident.Status = "true"
 	}
 
 	_, err := collection.InsertOne(ctx, incident)
-	if err != nil {
+	if err != nil{
 		return models.Incident{}, err
 	}
 
-	return *incident, err
-
+	return *incident, nil
 }
 
 func (db *incidentRepository) ListIncidentsByMonitor(monitorID string, limit int64) ([]*models.Incident, error) {

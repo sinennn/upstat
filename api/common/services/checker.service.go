@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
 	"github.com/CuesoftCloud/upstat/models"
 )
 
@@ -33,6 +32,7 @@ func ExecuteHttpCheck(monitor *models.Monitor) checkExecutionResult {
 		if attempt < maxAttempts {
 			time.Sleep(500 * time.Millisecond)
 		}
+
 	}
 
 	return result
