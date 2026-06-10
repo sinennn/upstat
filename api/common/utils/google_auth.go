@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v4"
 	"math/big"
 	"net/http"
 	"os"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 const googleJWKSURL = "https://www.googleapis.com/oauth2/v3/certs"

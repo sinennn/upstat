@@ -1,12 +1,23 @@
-version: "3"
 
 services:
   upstat_backend:
-    build: ./CommonServer
+    build: ./api/common
     ports:
       - "8080:8080"
     env_file:
-      - .env # Specify the path to the .env file for the app service
+      - ./api/common/.env
+    networks:
+      - mynetwork
+
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    ports:
+      - "8081:8081"
+      - "9901:9901"
+    volumes:
+      - ./deploy/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      - upstat_backend
     networks:
       - mynetwork
 

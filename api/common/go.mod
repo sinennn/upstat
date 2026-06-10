@@ -3,6 +3,7 @@ module github.com/CuesoftCloud/upstat
 go 1.25.0
 
 require (
+   // module github.com/CuesoftCloud/upstat/api/common/repositories v1.2.3
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/joho/godotenv v1.5.1

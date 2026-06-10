@@ -2,9 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"github.com/golang-jwt/jwt/v4"
 	"os"
 	"time"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type Claims struct {
