@@ -27,6 +27,7 @@ func AuthenticateInterceptor(
 		"/proto.UserService/CreateUser",
 		"/proto.UserService/GetUser",
 		"/proto.MonitorService/GetStatusPage",
+	    "/proto.MonitorService/GetRecentChecks",
 		"/proto.UserService/GoogleAuth":
 		return handler(ctx, req)
 	}

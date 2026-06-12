@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 
+from app.config import load_env_file
+
+load_env_file()
+
 from api.analyze import analyze_router
 from api.insights import insights_router
 
@@ -15,5 +19,3 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-
