@@ -202,6 +202,37 @@ func (s *MonitorServiceServer) GetStatusPage(
 	}, nil
 }
 
+func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetRecentChecksRequest) (*pb.GetRecentChecksResponse, error) {
+	if req.GetMonitorId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
+	}
+
+	limit := req.GetLimit()
+	if limit <= 0 {
+		limit = 50
+	}
+
+	checks, err := s.CheckResultRepo.ListRecentByMonitor(req.GetMonitorId(), int64(limit))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not retrieve recent checks")
+	}
+
+	protoChecks := make([]*pb.MonitorCheck, 0, len(checks))
+	for _, check := range checks {
+		protoChecks = append(protoChecks, &pb.MonitorCheck{
+			MonitorId:    check.MonitorID,
+			Success:      check.Status == "up",
+			ResponseTime: int32(check.ResponseTimeMs),
+			StatusCode:   int32(check.StatusCode),
+			CheckedAt:    check.CheckedAt.Format(time.RFC3339),
+		})
+	}
+
+	return &pb.GetRecentChecksResponse{
+		Checks: protoChecks,
+	}, nil
+}
+
 func (s *MonitorServiceServer) recentUptimeStats(monitors []*models.Monitor) (int64, int64, float64, error) {
 	since := time.Now().Add(-24 * time.Hour)
 
