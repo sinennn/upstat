@@ -9,6 +9,7 @@ class Insight:
     severity: str
     summary: str
     recommended_action: str
+    human_readable: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -18,5 +19,6 @@ class Insight:
             "severity": self.severity,
             "summary": self.summary,
             "recommended_action": self.recommended_action,
+            "human_readable": self.human_readable,
         }
 

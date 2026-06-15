@@ -2,14 +2,16 @@ package services
 
 import (
 	"context"
+	"time"
+
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/repositories"
 	"github.com/CuesoftCloud/upstat/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 type MonitorServiceServer struct {
@@ -17,6 +19,7 @@ type MonitorServiceServer struct {
 	MonitorRepo     repositories.MonitorRepository
 	CheckResultRepo repositories.CheckResultRepository
 	IncidentRepo    repositories.IncidentRepository
+	InsightRepo     repositories.InsightRepository
 }
 
 func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
@@ -24,6 +27,7 @@ func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
 		MonitorRepo:     repositories.NewMonitorRepository(db),
 		CheckResultRepo: repositories.NewCheckResultRepository(db),
 		IncidentRepo:    repositories.NewIncidentRepository(db),
+		InsightRepo:     repositories.NewInsightRepository(db),
 	}
 }
 
@@ -233,6 +237,50 @@ func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetR
 	}, nil
 }
 
+func (s *MonitorServiceServer) ReportMonitorInsight(ctx context.Context, req *pb.ReportMonitorInsightRequest) (*pb.ReportMonitorInsightResponse, error) {
+	if req.GetInsight() == nil {
+		return nil, status.Error(codes.InvalidArgument, "insight is required")
+	}
+
+	insightProto := req.GetInsight()
+	insight := models.MonitorInsight{
+		Id:                primitive.NewObjectID(),
+		MonitorID:         insightProto.GetMonitorId(),
+		RiskScore:         int(insightProto.GetRiskScore()),
+		AnomalyDetected:   insightProto.GetAnomalyDetected(),
+		Severity:          insightProto.GetSeverity(),
+		Summary:           insightProto.GetSummary(),
+		HumanReadable:     insightProto.GetHumanReadable(),
+		RecommendedAction: insightProto.GetRecommendedAction(),
+		GeneratedAt:       time.Now(),
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+	}
+
+	err := s.InsightRepo.SaveInsight(insight)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not save insight")
+	}
+
+	return &pb.ReportMonitorInsightResponse{Status: "success"}, nil
+}
+
+func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
+	if req.GetMonitorId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
+	}
+
+	insight, err := s.InsightRepo.GetInsightByMonitor(req.GetMonitorId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not retrieve insight")
+	}
+	if insight == nil {
+		return nil, status.Error(codes.NotFound, "insight not found")
+	}
+
+	return &pb.GetMonitorInsightResponse{Insight: insightResponse(insight)}, nil
+}
+
 func (s *MonitorServiceServer) recentUptimeStats(monitors []*models.Monitor) (int64, int64, float64, error) {
 	since := time.Now().Add(-24 * time.Hour)
 
@@ -335,5 +383,18 @@ func incidentResponse(incident *models.Incident) *pb.Incident {
 		StartedAt:       incident.StartedAt.Format(time.RFC3339),
 		ResolvedAt:      resolvedAt,
 		DurationSeconds: incident.DurationSeconds,
+	}
+}
+
+func insightResponse(insight *models.MonitorInsight) *pb.MonitorInsight {
+	return &pb.MonitorInsight{
+		MonitorId:         insight.MonitorID,
+		RiskScore:         int32(insight.RiskScore),
+		AnomalyDetected:   insight.AnomalyDetected,
+		Severity:          insight.Severity,
+		Summary:           insight.Summary,
+		HumanReadable:     insight.HumanReadable,
+		RecommendedAction: insight.RecommendedAction,
+		GeneratedAt:       insight.GeneratedAt.Format(time.RFC3339),
 	}
 }
