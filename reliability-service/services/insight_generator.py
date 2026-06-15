@@ -4,10 +4,12 @@ from analysis.trend_analysis import describe_trend
 from ml.feature_builder import build_features
 from models.insight import Insight
 from repositories.insight_repository import save_insight
+from repositories.insight_sender import report_insight
 from repositories.monitor_repository import get_recent_checks
-from services.anomaly_detector import detect_anomaly
+from services.groq_renderer import render_insight_narrative
 from services.risk_scorer import calculate_risk_score
 from services.severity_classifier import risk_classifier
+from services.ml_anomaly_detector import MLAnomalyDetector
 
 
 def generate_insight(monitor_id: str) -> Insight:
@@ -19,7 +21,11 @@ def generate_insight(monitor_id: str) -> Insight:
         average_response_time=features["average_response_time"],
     )
     severity = risk_classifier(risk_score)
-    anomaly_detected = detect_anomaly(features)
+    
+    
+    ml_detector = MLAnomalyDetector(monitor_id)
+    ml_result = ml_detector.predict_anomaly(checks)
+    anomaly_detected = ml_result["is_anomaly"]
     signals = [
         signal
         for signal in (
@@ -30,6 +36,21 @@ def generate_insight(monitor_id: str) -> Insight:
         if signal
     ]
 
+    human_readable = None
+    try:
+        preliminary_insight = Insight(
+            monitor_id=monitor_id,
+            risk_score=risk_score,
+            anomaly_detected=anomaly_detected,
+            severity=severity,
+            summary=", ".join(signals) if signals else "no reliability issues detected",
+            recommended_action=_recommended_action(severity, anomaly_detected),
+        )
+        human_readable = render_insight_narrative(preliminary_insight)
+    except Exception:
+        # If narrative generation fails, continue with the standard insight payload.
+        human_readable = None
+
     insight = Insight(
         monitor_id=monitor_id,
         risk_score=risk_score,
@@ -37,9 +58,12 @@ def generate_insight(monitor_id: str) -> Insight:
         severity=severity,
         summary=", ".join(signals) if signals else "no reliability issues detected",
         recommended_action=_recommended_action(severity, anomaly_detected),
+        human_readable=human_readable,
     )
 
-    return save_insight(insight)
+    saved_insight = save_insight(insight)
+    report_insight(saved_insight)
+    return saved_insight
 
 
 def _recommended_action(severity: str, anomaly_detected: bool) -> str:

@@ -9,6 +9,19 @@ services:
     networks:
       - mynetwork
 
+  reliability_service:
+    build: ./reliability-service
+    ports:
+      - "8000:8000"
+    environment:
+      - UPSTAT_GRPC_ADDRESS=upstat_backend:8080
+      - UPSTAT_GRPC_AUTH_TOKEN=
+      - UPSTAT_GRPC_CHECK_LIMIT=50
+    depends_on:
+      - upstat_backend
+    networks:
+      - mynetwork
+
   envoy:
     image: envoyproxy/envoy:v1.31-latest
     ports:
@@ -22,15 +35,10 @@ services:
       - mynetwork
 
   app-frontend:
-    build:
-      context: ./App
-      target: development
-    ports:
-      - 3000:3000
-    volumes:
-      - ./App:/app
-    depends_on:
-      - upstat_backend
+    # Temporarily disabled - no Dockerfile in ./App yet
+    # To re-enable: create ./App/Dockerfile with Next.js build config
+    profiles:
+      - disabled
 
 networks:
   mynetwork:

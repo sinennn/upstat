@@ -1,8 +1,9 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Monitor struct {
@@ -50,6 +51,20 @@ type Incident struct {
 	DurationSeconds int64              `json:"DurationSeconds" bson:"durationSeconds"`
 	CreatedAt       time.Time          `json:"CreatedAt" bson:"createdAt"`
 	UpdatedAt       time.Time          `json:"UpdatedAt" bson:"updatedAt"`
+}
+
+type MonitorInsight struct {
+	Id                primitive.ObjectID `json:"Id" bson:"_id"`
+	MonitorID         string             `json:"MonitorID" bson:"monitorId"`
+	RiskScore         int                `json:"RiskScore" bson:"riskScore"`
+	AnomalyDetected   bool               `json:"AnomalyDetected" bson:"anomalyDetected"`
+	Severity          string             `json:"Severity" bson:"severity"`
+	Summary           string             `json:"Summary" bson:"summary"`
+    HumanReadable	  string			 `json:"HumanReadable" bson:"humanReadable"`	
+	RecommendedAction string             `json:"RecommendedAction" bson:"recommendedAction"`
+	GeneratedAt       time.Time          `json:"GeneratedAt" bson:"generatedAt"`
+	CreatedAt         time.Time          `json:"CreatedAt" bson:"createdAt"`
+	UpdatedAt         time.Time          `json:"UpdatedAt" bson:"updatedAt"`
 }
 
 type StatusPage struct {
