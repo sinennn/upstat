@@ -70,12 +70,14 @@ message Monitor{
 
 message MonitorInsight {
   string monitor_id = 1;
-  int32 risk_score = 2;
-  bool anomaly_detected = 3;
-  string severity = 4;
-  string summary = 5;
-  string recommended_action = 6;
-  string generated_at = 7;
+  string monitor_name = 2;
+  int32 risk_score = 3;
+  bool anomaly_detected = 4;
+  string severity = 5;
+  string summary = 6;
+  string recommended_action = 7;
+  string human_readable = 8;
+  string generated_at = 9;
 }
 
 message ReportMonitorInsightRequest {
@@ -84,6 +86,7 @@ message ReportMonitorInsightRequest {
 
 message ReportMonitorInsightResponse {
   string status = 1;
+  MonitorInsight insight = 2;
 }
 
 message GetMonitorInsightRequest {

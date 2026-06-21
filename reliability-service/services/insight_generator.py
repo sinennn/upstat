@@ -1,3 +1,5 @@
+import logging
+
 from analysis.failure_analysis import describe_failures
 from analysis.latency_analysis import describe_latency
 from analysis.trend_analysis import describe_trend
@@ -5,27 +7,40 @@ from ml.feature_builder import build_features
 from models.insight import Insight
 from repositories.insight_repository import save_insight
 from repositories.insight_sender import report_insight
-from repositories.monitor_repository import get_recent_checks
+from repositories.monitor_repository import get_monitor_name, get_recent_checks
 from services.groq_renderer import render_insight_narrative
 from services.risk_scorer import calculate_risk_score
 from services.severity_classifier import risk_classifier
 from services.ml_anomaly_detector import MLAnomalyDetector
 
+logger = logging.getLogger(__name__)
+
 
 def generate_insight(monitor_id: str) -> Insight:
+    logger.info(f"Starting insight generation for monitor_id={monitor_id}")
     checks = get_recent_checks(monitor_id)
+    logger.info(f"Retrieved {len(checks)} checks for monitor_id={monitor_id}")
     features = build_features(checks)
+
     risk_score = calculate_risk_score(
         failed_checks=features["failed_checks"],
         total_checks=features["total_checks"],
         average_response_time=features["average_response_time"],
     )
     severity = risk_classifier(risk_score)
-    
-    
+    logger.info(
+        f"Computed risk_score={risk_score}, severity={severity} "
+        f"for monitor_id={monitor_id}"
+    )
+
     ml_detector = MLAnomalyDetector(monitor_id)
     ml_result = ml_detector.predict_anomaly(checks)
     anomaly_detected = ml_result["is_anomaly"]
+    anomaly_score = ml_result.get("anomaly_score", 0.0)
+    logger.info(
+        f"ML anomaly detection result for monitor_id={monitor_id}: "
+        f"anomaly_detected={anomaly_detected}, anomaly_score={anomaly_score:.3f}"
+    )
     signals = [
         signal
         for signal in (
@@ -36,10 +51,14 @@ def generate_insight(monitor_id: str) -> Insight:
         if signal
     ]
 
+    monitor_name = get_monitor_name(monitor_id) or monitor_id
+    logger.info(f"Resolved monitor_name={monitor_name} for monitor_id={monitor_id}")
+
     human_readable = None
     try:
         preliminary_insight = Insight(
             monitor_id=monitor_id,
+            monitor_name=monitor_name,
             risk_score=risk_score,
             anomaly_detected=anomaly_detected,
             severity=severity,
@@ -49,10 +68,12 @@ def generate_insight(monitor_id: str) -> Insight:
         human_readable = render_insight_narrative(preliminary_insight)
     except Exception:
         # If narrative generation fails, continue with the standard insight payload.
+        logger.exception("Failed to generate Groq narrative for monitor %s", monitor_id)
         human_readable = None
 
     insight = Insight(
         monitor_id=monitor_id,
+        monitor_name=monitor_name,
         risk_score=risk_score,
         anomaly_detected=anomaly_detected,
         severity=severity,
@@ -62,7 +83,9 @@ def generate_insight(monitor_id: str) -> Insight:
     )
 
     saved_insight = save_insight(insight)
+    logger.info(f"Insight saved for monitor_id={monitor_id}")
     report_insight(saved_insight)
+    logger.info(f"Insight reported for monitor_id={monitor_id}")
     return saved_insight
 
 

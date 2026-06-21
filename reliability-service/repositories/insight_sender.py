@@ -20,6 +20,7 @@ def report_insight(insight: Insight) -> None:
             # Include human_readable if available so backend can persist and return it.
             insight_msg = user_pb2.MonitorInsight(
                 monitor_id=insight.monitor_id,
+                monitor_name=insight.monitor_name,
                 risk_score=int(insight.risk_score),
                 anomaly_detected=insight.anomaly_detected,
                 severity=insight.severity,

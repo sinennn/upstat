@@ -311,15 +311,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	MonitorService_CreateMonitor_FullMethodName        = "/proto.MonitorService/CreateMonitor"
-	MonitorService_UpdateMonitor_FullMethodName        = "/proto.MonitorService/UpdateMonitor"
-	MonitorService_GetMonitor_FullMethodName           = "/proto.MonitorService/GetMonitor"
-	MonitorService_ListMonitors_FullMethodName         = "/proto.MonitorService/ListMonitors"
-	MonitorService_DeleteMonitor_FullMethodName        = "/proto.MonitorService/DeleteMonitor"
-	MonitorService_GetStatusPage_FullMethodName        = "/proto.MonitorService/GetStatusPage"
-	MonitorService_GetRecentChecks_FullMethodName      = "/proto.MonitorService/GetRecentChecks"
-	MonitorService_ReportMonitorInsight_FullMethodName = "/proto.MonitorService/ReportMonitorInsight"
-	MonitorService_GetMonitorInsight_FullMethodName    = "/proto.MonitorService/GetMonitorInsight"
+	MonitorService_CreateMonitor_FullMethodName     = "/proto.MonitorService/CreateMonitor"
+	MonitorService_UpdateMonitor_FullMethodName     = "/proto.MonitorService/UpdateMonitor"
+	MonitorService_GetMonitor_FullMethodName        = "/proto.MonitorService/GetMonitor"
+	MonitorService_ListMonitors_FullMethodName      = "/proto.MonitorService/ListMonitors"
+	MonitorService_DeleteMonitor_FullMethodName     = "/proto.MonitorService/DeleteMonitor"
+	MonitorService_GetStatusPage_FullMethodName     = "/proto.MonitorService/GetStatusPage"
+	MonitorService_GetRecentChecks_FullMethodName   = "/proto.MonitorService/GetRecentChecks"
+	MonitorService_GetMonitorInsight_FullMethodName = "/proto.MonitorService/GetMonitorInsight"
 )
 
 // MonitorServiceClient is the client API for MonitorService service.
@@ -333,7 +332,6 @@ type MonitorServiceClient interface {
 	DeleteMonitor(ctx context.Context, in *DeleteMonitorRequest, opts ...grpc.CallOption) (*DeleteMonitorResponse, error)
 	GetStatusPage(ctx context.Context, in *GetStatusPageRequest, opts ...grpc.CallOption) (*GetStatusPageResponse, error)
 	GetRecentChecks(ctx context.Context, in *GetRecentChecksRequest, opts ...grpc.CallOption) (*GetRecentChecksResponse, error)
-	ReportMonitorInsight(ctx context.Context, in *ReportMonitorInsightRequest, opts ...grpc.CallOption) (*ReportMonitorInsightResponse, error)
 	GetMonitorInsight(ctx context.Context, in *GetMonitorInsightRequest, opts ...grpc.CallOption) (*GetMonitorInsightResponse, error)
 }
 
@@ -415,16 +413,6 @@ func (c *monitorServiceClient) GetRecentChecks(ctx context.Context, in *GetRecen
 	return out, nil
 }
 
-func (c *monitorServiceClient) ReportMonitorInsight(ctx context.Context, in *ReportMonitorInsightRequest, opts ...grpc.CallOption) (*ReportMonitorInsightResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReportMonitorInsightResponse)
-	err := c.cc.Invoke(ctx, MonitorService_ReportMonitorInsight_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *monitorServiceClient) GetMonitorInsight(ctx context.Context, in *GetMonitorInsightRequest, opts ...grpc.CallOption) (*GetMonitorInsightResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetMonitorInsightResponse)
@@ -446,7 +434,6 @@ type MonitorServiceServer interface {
 	DeleteMonitor(context.Context, *DeleteMonitorRequest) (*DeleteMonitorResponse, error)
 	GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error)
 	GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error)
-	ReportMonitorInsight(context.Context, *ReportMonitorInsightRequest) (*ReportMonitorInsightResponse, error)
 	GetMonitorInsight(context.Context, *GetMonitorInsightRequest) (*GetMonitorInsightResponse, error)
 	mustEmbedUnimplementedMonitorServiceServer()
 }
@@ -478,9 +465,6 @@ func (UnimplementedMonitorServiceServer) GetStatusPage(context.Context, *GetStat
 }
 func (UnimplementedMonitorServiceServer) GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRecentChecks not implemented")
-}
-func (UnimplementedMonitorServiceServer) ReportMonitorInsight(context.Context, *ReportMonitorInsightRequest) (*ReportMonitorInsightResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ReportMonitorInsight not implemented")
 }
 func (UnimplementedMonitorServiceServer) GetMonitorInsight(context.Context, *GetMonitorInsightRequest) (*GetMonitorInsightResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMonitorInsight not implemented")
@@ -632,24 +616,6 @@ func _MonitorService_GetRecentChecks_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MonitorService_ReportMonitorInsight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReportMonitorInsightRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MonitorServiceServer).ReportMonitorInsight(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MonitorService_ReportMonitorInsight_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MonitorServiceServer).ReportMonitorInsight(ctx, req.(*ReportMonitorInsightRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MonitorService_GetMonitorInsight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMonitorInsightRequest)
 	if err := dec(in); err != nil {
@@ -702,10 +668,6 @@ var MonitorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRecentChecks",
 			Handler:    _MonitorService_GetRecentChecks_Handler,
-		},
-		{
-			MethodName: "ReportMonitorInsight",
-			Handler:    _MonitorService_ReportMonitorInsight_Handler,
 		},
 		{
 			MethodName: "GetMonitorInsight",

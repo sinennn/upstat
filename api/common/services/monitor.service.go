@@ -3,13 +3,11 @@ package services
 import (
 	"context"
 	"time"
-
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/repositories"
 	"github.com/CuesoftCloud/upstat/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -237,32 +235,20 @@ func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetR
 	}, nil
 }
 
-func (s *MonitorServiceServer) ReportMonitorInsight(ctx context.Context, req *pb.ReportMonitorInsightRequest) (*pb.ReportMonitorInsightResponse, error) {
-	if req.GetInsight() == nil {
-		return nil, status.Error(codes.InvalidArgument, "insight is required")
+
+
+func hasInsightPayload(insight *pb.MonitorInsight) bool {
+	if insight == nil {
+		return false
 	}
 
-	insightProto := req.GetInsight()
-	insight := models.MonitorInsight{
-		Id:                primitive.NewObjectID(),
-		MonitorID:         insightProto.GetMonitorId(),
-		RiskScore:         int(insightProto.GetRiskScore()),
-		AnomalyDetected:   insightProto.GetAnomalyDetected(),
-		Severity:          insightProto.GetSeverity(),
-		Summary:           insightProto.GetSummary(),
-		HumanReadable:     insightProto.GetHumanReadable(),
-		RecommendedAction: insightProto.GetRecommendedAction(),
-		GeneratedAt:       time.Now(),
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
-	}
-
-	err := s.InsightRepo.SaveInsight(insight)
-	if err != nil {
-		return nil, status.Error(codes.Internal, "could not save insight")
-	}
-
-	return &pb.ReportMonitorInsightResponse{Status: "success"}, nil
+	return insight.GetRiskScore() != 0 ||
+		insight.GetAnomalyDetected() ||
+		insight.GetSeverity() != "" ||
+		insight.GetSummary() != "" ||
+		insight.GetRecommendedAction() != "" ||
+		insight.GetHumanReadable() != "" ||
+		insight.GetGeneratedAt() != ""
 }
 
 func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
@@ -389,6 +375,7 @@ func incidentResponse(incident *models.Incident) *pb.Incident {
 func insightResponse(insight *models.MonitorInsight) *pb.MonitorInsight {
 	return &pb.MonitorInsight{
 		MonitorId:         insight.MonitorID,
+		//MonitorName:       insight.MonitorName,
 		RiskScore:         int32(insight.RiskScore),
 		AnomalyDetected:   insight.AnomalyDetected,
 		Severity:          insight.Severity,

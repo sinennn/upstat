@@ -10,42 +10,86 @@ logger = logging.getLogger(__name__)
 
 GROQ_API_BASE_URL = os.getenv("GROQ_API_BASE_URL", "https://api.groq.com/openai/v1/responses")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_TIMEOUT_SECONDS = int(os.getenv("GROQ_TIMEOUT_SECONDS", "12"))
 
+print('LLM Renderer initiated')
 
-def _build_prompt(insight: Insight) -> str:
-    return (
-        "Write an emotionally intelligent, human-readable status summary for a monitor. "
-        "Use the monitor insight data below and make it sound empathetic, concise, and actionable. "
-        "Avoid technical jargon and keep it focused on reliability, impact, and next steps.\n\n"
-        f"Monitor ID: {insight.monitor_id}\n"
-        f"Risk score: {insight.risk_score}\n"
-        f"Severity: {insight.severity}\n"
-        f"Anomaly detected: {'yes' if insight.anomaly_detected else 'no'}\n"
-        f"Summary: {insight.summary}\n"
-        f"Recommended action: {insight.recommended_action}\n\n"
-        "Return a single short paragraph that a product owner or site operator can read and understand instantly."
-    )
+def _build_prompt(insight: Insight):
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are a monitoring report generator. "
+                "Your work has nothing to do with computer monitors, the output devices; never mention them\n\n"
 
+                "CRITICAL RULES:\n"
+                "- Refer to the monitored system ONLY as 'The service'.\n"
+                "- NEVER mention the monitor name.\n"
+                "- NEVER mention the monitor ID.\n"
+                "- NEVER use any proper names.\n"
+                "- NEVER use phrases like 'this monitor', 'the monitor', "
+                "'the system', 'The Server Monitor', 'the application', 'the platform', or "
+                "'the infrastructure'. Only use 'this service'.\n"
+                "- ALWAYS use the exact phrase 'The service' when referring "
+                "to the monitored entity.\n"
+                "- Return exactly one short paragraph.\n"
+                "- Do not include headings.\n"
+                "- Do not include bullet points.\n"
+                "- Do not include markdown.\n"
+                "- Do not include reasoning.\n"
+                "- Do not include analysis.\n"
+                "- Do not include planning.\n"
+                "- Do not explain your answer.\n"
+                "- Output only the final report text."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Risk score: {insight.risk_score}\n"
+                f"Severity: {insight.severity}\n"
+                f"Anomaly detected: {'yes' if insight.anomaly_detected else 'no'}\n"
+                f"Summary: {insight.summary}\n"
+                f"Recommended action: {insight.recommended_action}"
+            ),
+        },
+    ]
+
+# def _sanitize_output(text: str) -> str:
+#     bad_prefixes = [
+#         "we need to",
+#         "i need to",
+#         "let me",
+#         "reasoning:",
+#         "analysis:",
+#         "thought:",
+#         "plan:",
+#     ]
+
+#     lower = text.lower()
+
+#     for prefix in bad_prefixes:
+#         idx = lower.find(prefix)
+#         if idx == 0:
+#             split = text.rfind(".")
+#             if split != -1:
+#                 sentences = text.split(".")
+#                 return ".".join(sentences[-2:]).strip()
+
+#     return text.strip()
 
 def _extract_text(response_json: dict[str, Any]) -> str:
     if not response_json:
         return ""
 
+    if "output" in response_json and isinstance(response_json["output"], list):
+        message_text = _extract_message_output_text(response_json["output"])
+        if message_text:
+            return message_text
+
     if "output_text" in response_json and isinstance(response_json["output_text"], str):
         return response_json["output_text"]
-
-    if "output" in response_json and isinstance(response_json["output"], list):
-        parts = []
-        for item in response_json["output"]:
-            if isinstance(item, dict):
-                if "content" in item and isinstance(item["content"], str):
-                    parts.append(item["content"])
-                elif "text" in item and isinstance(item["text"], str):
-                    parts.append(item["text"])
-        if parts:
-            return "".join(parts)
 
     if "choices" in response_json and isinstance(response_json["choices"], list):
         for choice in response_json["choices"]:
@@ -57,6 +101,46 @@ def _extract_text(response_json: dict[str, Any]) -> str:
                 if "text" in choice and isinstance(choice["text"], str):
                     return choice["text"]
     return ""
+
+
+def _extract_message_output_text(output: list[Any]) -> str:
+    parts = []
+    for item in output:
+        if not isinstance(item, dict):
+            continue
+
+        item_type = item.get("type")
+        role = item.get("role")
+        if item_type != "message" and role != "assistant":
+            continue
+
+        content = item.get("content")
+        if isinstance(content, str):
+            parts.append(content)
+        elif isinstance(content, list):
+            parts.extend(_extract_output_text_parts(content))
+
+        text = item.get("text")
+        if isinstance(text, str):
+            parts.append(text)
+
+    return "".join(parts).strip()
+
+
+def _extract_output_text_parts(content: list[Any]) -> list[str]:
+    parts = []
+    for part in content:
+        if isinstance(part, str):
+            parts.append(part)
+        elif isinstance(part, dict):
+            part_type = part.get("type")
+            if part_type not in {"output_text", "text", "message_text", None}:
+                continue
+
+            text = part.get("text")
+            if isinstance(text, str):
+                parts.append(text)
+    return parts
 
 
 def render_insight_narrative(insight: Insight) -> str:

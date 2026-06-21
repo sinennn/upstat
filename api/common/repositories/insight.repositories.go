@@ -37,6 +37,7 @@ func (db *insightRepository) SaveInsight(insight models.MonitorInsight) error {
 	filter := bson.M{"monitorId": insight.MonitorID}
 	setMap := bson.M{
 		"monitorId":         insight.MonitorID,
+		"monitorName":       insight.MonitorName,
 		"riskScore":         insight.RiskScore,
 		"anomalyDetected":   insight.AnomalyDetected,
 		"severity":          insight.Severity,
