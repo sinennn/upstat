@@ -8,6 +8,7 @@ import (
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -33,6 +34,13 @@ func (db *insightRepository) SaveInsight(insight models.MonitorInsight) error {
 	collection := insightCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	if insight.Id.IsZero() {
+		insight.Id = primitive.NewObjectID()
+	}
+	if insight.CreatedAt.IsZero() {
+		insight.CreatedAt = time.Now()
+	}
 
 	filter := bson.M{"monitorId": insight.MonitorID}
 	setMap := bson.M{

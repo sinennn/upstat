@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"time"
+
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
@@ -235,9 +236,6 @@ func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetR
 	}, nil
 }
 
-
-
-
 func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
 	if req.GetMonitorId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
@@ -362,7 +360,7 @@ func incidentResponse(incident *models.Incident) *pb.Incident {
 func insightResponse(insight *models.MonitorInsight) *pb.MonitorInsight {
 	return &pb.MonitorInsight{
 		MonitorId:         insight.MonitorID,
-		//MonitorName:       insight.MonitorName,
+		MonitorName:       insight.MonitorName,
 		RiskScore:         int32(insight.RiskScore),
 		AnomalyDetected:   insight.AnomalyDetected,
 		Severity:          insight.Severity,

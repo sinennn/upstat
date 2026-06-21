@@ -356,11 +356,6 @@ class MonitorServiceStub:
                 request_serializer=user__pb2.GetRecentChecksRequest.SerializeToString,
                 response_deserializer=user__pb2.GetRecentChecksResponse.FromString,
                 _registered_method=True)
-        self.ReportMonitorInsight = channel.unary_unary(
-                '/proto.MonitorService/ReportMonitorInsight',
-                request_serializer=user__pb2.ReportMonitorInsightRequest.SerializeToString,
-                response_deserializer=user__pb2.ReportMonitorInsightResponse.FromString,
-                _registered_method=True)
         self.GetMonitorInsight = channel.unary_unary(
                 '/proto.MonitorService/GetMonitorInsight',
                 request_serializer=user__pb2.GetMonitorInsightRequest.SerializeToString,
@@ -413,12 +408,6 @@ class MonitorServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ReportMonitorInsight(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def GetMonitorInsight(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -462,11 +451,6 @@ def add_MonitorServiceServicer_to_server(servicer, server):
                     servicer.GetRecentChecks,
                     request_deserializer=user__pb2.GetRecentChecksRequest.FromString,
                     response_serializer=user__pb2.GetRecentChecksResponse.SerializeToString,
-            ),
-            'ReportMonitorInsight': grpc.unary_unary_rpc_method_handler(
-                    servicer.ReportMonitorInsight,
-                    request_deserializer=user__pb2.ReportMonitorInsightRequest.FromString,
-                    response_serializer=user__pb2.ReportMonitorInsightResponse.SerializeToString,
             ),
             'GetMonitorInsight': grpc.unary_unary_rpc_method_handler(
                     servicer.GetMonitorInsight,
@@ -663,33 +647,6 @@ class MonitorService:
             '/proto.MonitorService/GetRecentChecks',
             user__pb2.GetRecentChecksRequest.SerializeToString,
             user__pb2.GetRecentChecksResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def ReportMonitorInsight(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/proto.MonitorService/ReportMonitorInsight',
-            user__pb2.ReportMonitorInsightRequest.SerializeToString,
-            user__pb2.ReportMonitorInsightResponse.FromString,
             options,
             channel_credentials,
             insecure,
