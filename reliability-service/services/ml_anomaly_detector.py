@@ -3,6 +3,9 @@ import pickle
 import logging
 from pathlib import Path
 import numpy as np
+from dataclasses import asdict, is_dataclass
+
+from ml.model_manager import ensure_model_exists
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +28,16 @@ class MLAnomalyDetector:
         self._load_model()
     
     def _load_model(self):
-        """Load model and transformer from disk, if they exist."""
+        """Load model and transformer from disk, if they exist. Attempt to train if missing."""
         model_dir = Path("ml/models")
         model_path = model_dir / f"{self.monitor_id}_anomaly_model.pkl"
         transformer_path = model_dir / f"{self.monitor_id}_transformer.pkl"
         
-        if not model_path.exists() or not transformer_path.exists():
+        # Try to ensure model exists (train if necessary)
+        if not ensure_model_exists(self.monitor_id):
             logger.warning(
-                f"No trained model found for monitor {self.monitor_id}. "
-                f"Run: python train_anomaly_model.py {self.monitor_id}"
+                f"No trained model found for monitor {self.monitor_id} and insufficient data to train. "
+                f"Fallback to heuristic detection. Run: python train_anomaly_model.py {self.monitor_id}"
             )
             return False
         
@@ -76,7 +80,10 @@ class MLAnomalyDetector:
         
         try:
             # Transform checks to feature matrix
-            feature_matrix = self.transformer.transform(checks)
+            feature_matrix = self.transformer.transform([
+                self._check_to_feature_dict(check)
+                for check in checks
+            ])
             
             # Get prediction and score for the most recent check (last row)
             recent_check_features = feature_matrix[-1:]
@@ -85,14 +92,15 @@ class MLAnomalyDetector:
             prediction = self.model.predict(recent_check_features)[0]
             
             # Anomaly score: lower = more anomalous
-            score = self.model.predict_proba(recent_check_features)[0]
+            # IsolationForest uses score_samples(), not predict_proba()
+            score = self.model.score_samples(recent_check_features)[0]
             
             # Convert to 0-1 scale where 1 = highly anomalous
             # Isolation Forest scores range roughly from -0.3 to 0.0
             # We normalize: 0.0 -> 0.0 (normal), -0.3 -> 1.0 (anomalous)
             anomaly_score = max(0.0, min(1.0, -score / 0.3))
             
-            is_anomaly = prediction == -1
+            is_anomaly = bool(prediction == -1)
             
             logger.debug(
                 f"Monitor {self.monitor_id}: "
@@ -107,3 +115,17 @@ class MLAnomalyDetector:
         except Exception as e:
             logger.error(f"Prediction failed for {self.monitor_id}: {e}")
             return {"is_anomaly": False, "anomaly_score": 0.0}
+
+    def _check_to_feature_dict(self, check) -> dict:
+        if isinstance(check, dict):
+            return check
+
+        if is_dataclass(check):
+            check = asdict(check)
+
+        return {
+            "responseTimeMs": getattr(check, "response_time_ms", 0) if not isinstance(check, dict) else check.get("response_time_ms", 0),
+            "status": "up" if (getattr(check, "success", False) if not isinstance(check, dict) else check.get("success", False)) else "down",
+            "statusCode": getattr(check, "status_code", 0) if not isinstance(check, dict) else check.get("status_code", 0),
+            "attempts": getattr(check, "attempts", 1) if not isinstance(check, dict) else check.get("attempts", 1),
+        }

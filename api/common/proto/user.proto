@@ -22,7 +22,6 @@ service MonitorService{
    rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
    rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse);
    rpc GetRecentChecks(GetRecentChecksRequest) returns (GetRecentChecksResponse);
-   rpc ReportMonitorInsight(ReportMonitorInsightRequest) returns (ReportMonitorInsightResponse);
    rpc GetMonitorInsight(GetMonitorInsightRequest) returns (GetMonitorInsightResponse);
 }
 
@@ -63,16 +62,8 @@ message MonitorInsight {
   string severity = 4;
   string summary = 5;
   string recommended_action = 6;
-  string generated_at = 7;
-}
-
-message ReportMonitorInsightRequest {
-  MonitorInsight insight = 1;
-}
-
-message ReportMonitorInsightResponse {
-  string status = 1;
-  string human_readable = 2;
+  string human_readable = 7;
+  string generated_at = 8;
 }
 
 message GetMonitorInsightRequest {

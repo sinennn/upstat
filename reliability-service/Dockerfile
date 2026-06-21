@@ -13,4 +13,5 @@ EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
 ENV UPSTAT_GRPC_ADDRESS=upstat_backend:8080
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

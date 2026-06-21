@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from proto import user_pb2 as proto_dot_user__pb2
+from . import user_pb2 as user__pb2
 
 GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in proto/user_pb2_grpc.py depends on'
+        + ' but the generated code in user_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,33 +36,33 @@ class UserServiceStub:
         """
         self.GetUser = channel.unary_unary(
                 '/proto.UserService/GetUser',
-                request_serializer=proto_dot_user__pb2.GetUserRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.GetUserResponse.FromString,
+                request_serializer=user__pb2.GetUserRequest.SerializeToString,
+                response_deserializer=user__pb2.GetUserResponse.FromString,
                 _registered_method=True)
         self.GoogleAuth = channel.unary_unary(
                 '/proto.UserService/GoogleAuth',
-                request_serializer=proto_dot_user__pb2.GoogleAuthRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.GetUserResponse.FromString,
+                request_serializer=user__pb2.GoogleAuthRequest.SerializeToString,
+                response_deserializer=user__pb2.GetUserResponse.FromString,
                 _registered_method=True)
         self.CreateUser = channel.unary_unary(
                 '/proto.UserService/CreateUser',
-                request_serializer=proto_dot_user__pb2.CreateUserRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.CreateUserResponse.FromString,
+                request_serializer=user__pb2.CreateUserRequest.SerializeToString,
+                response_deserializer=user__pb2.CreateUserResponse.FromString,
                 _registered_method=True)
         self.UpdateUser = channel.unary_unary(
                 '/proto.UserService/UpdateUser',
-                request_serializer=proto_dot_user__pb2.UpdateUserRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.UpdateUserResponse.FromString,
+                request_serializer=user__pb2.UpdateUserRequest.SerializeToString,
+                response_deserializer=user__pb2.UpdateUserResponse.FromString,
                 _registered_method=True)
         self.DeleteUser = channel.unary_unary(
                 '/proto.UserService/DeleteUser',
-                request_serializer=proto_dot_user__pb2.DeleteUserRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.DeleteUserResponse.FromString,
+                request_serializer=user__pb2.DeleteUserRequest.SerializeToString,
+                response_deserializer=user__pb2.DeleteUserResponse.FromString,
                 _registered_method=True)
         self.GetAllUsers = channel.unary_unary(
                 '/proto.UserService/GetAllUsers',
-                request_serializer=proto_dot_user__pb2.Empty.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.GetAllUsersResponse.FromString,
+                request_serializer=user__pb2.Empty.SerializeToString,
+                response_deserializer=user__pb2.GetAllUsersResponse.FromString,
                 _registered_method=True)
 
 
@@ -110,33 +110,33 @@ def add_UserServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetUser': grpc.unary_unary_rpc_method_handler(
                     servicer.GetUser,
-                    request_deserializer=proto_dot_user__pb2.GetUserRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.GetUserResponse.SerializeToString,
+                    request_deserializer=user__pb2.GetUserRequest.FromString,
+                    response_serializer=user__pb2.GetUserResponse.SerializeToString,
             ),
             'GoogleAuth': grpc.unary_unary_rpc_method_handler(
                     servicer.GoogleAuth,
-                    request_deserializer=proto_dot_user__pb2.GoogleAuthRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.GetUserResponse.SerializeToString,
+                    request_deserializer=user__pb2.GoogleAuthRequest.FromString,
+                    response_serializer=user__pb2.GetUserResponse.SerializeToString,
             ),
             'CreateUser': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateUser,
-                    request_deserializer=proto_dot_user__pb2.CreateUserRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.CreateUserResponse.SerializeToString,
+                    request_deserializer=user__pb2.CreateUserRequest.FromString,
+                    response_serializer=user__pb2.CreateUserResponse.SerializeToString,
             ),
             'UpdateUser': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateUser,
-                    request_deserializer=proto_dot_user__pb2.UpdateUserRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.UpdateUserResponse.SerializeToString,
+                    request_deserializer=user__pb2.UpdateUserRequest.FromString,
+                    response_serializer=user__pb2.UpdateUserResponse.SerializeToString,
             ),
             'DeleteUser': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteUser,
-                    request_deserializer=proto_dot_user__pb2.DeleteUserRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.DeleteUserResponse.SerializeToString,
+                    request_deserializer=user__pb2.DeleteUserRequest.FromString,
+                    response_serializer=user__pb2.DeleteUserResponse.SerializeToString,
             ),
             'GetAllUsers': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllUsers,
-                    request_deserializer=proto_dot_user__pb2.Empty.FromString,
-                    response_serializer=proto_dot_user__pb2.GetAllUsersResponse.SerializeToString,
+                    request_deserializer=user__pb2.Empty.FromString,
+                    response_serializer=user__pb2.GetAllUsersResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -164,8 +164,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/GetUser',
-            proto_dot_user__pb2.GetUserRequest.SerializeToString,
-            proto_dot_user__pb2.GetUserResponse.FromString,
+            user__pb2.GetUserRequest.SerializeToString,
+            user__pb2.GetUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -191,8 +191,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/GoogleAuth',
-            proto_dot_user__pb2.GoogleAuthRequest.SerializeToString,
-            proto_dot_user__pb2.GetUserResponse.FromString,
+            user__pb2.GoogleAuthRequest.SerializeToString,
+            user__pb2.GetUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -218,8 +218,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/CreateUser',
-            proto_dot_user__pb2.CreateUserRequest.SerializeToString,
-            proto_dot_user__pb2.CreateUserResponse.FromString,
+            user__pb2.CreateUserRequest.SerializeToString,
+            user__pb2.CreateUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -245,8 +245,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/UpdateUser',
-            proto_dot_user__pb2.UpdateUserRequest.SerializeToString,
-            proto_dot_user__pb2.UpdateUserResponse.FromString,
+            user__pb2.UpdateUserRequest.SerializeToString,
+            user__pb2.UpdateUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -272,8 +272,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/DeleteUser',
-            proto_dot_user__pb2.DeleteUserRequest.SerializeToString,
-            proto_dot_user__pb2.DeleteUserResponse.FromString,
+            user__pb2.DeleteUserRequest.SerializeToString,
+            user__pb2.DeleteUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -299,8 +299,8 @@ class UserService:
             request,
             target,
             '/proto.UserService/GetAllUsers',
-            proto_dot_user__pb2.Empty.SerializeToString,
-            proto_dot_user__pb2.GetAllUsersResponse.FromString,
+            user__pb2.Empty.SerializeToString,
+            user__pb2.GetAllUsersResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -323,38 +323,48 @@ class MonitorServiceStub:
         """
         self.CreateMonitor = channel.unary_unary(
                 '/proto.MonitorService/CreateMonitor',
-                request_serializer=proto_dot_user__pb2.CreateMonitorRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.MonitorResponse.FromString,
+                request_serializer=user__pb2.CreateMonitorRequest.SerializeToString,
+                response_deserializer=user__pb2.MonitorResponse.FromString,
                 _registered_method=True)
         self.UpdateMonitor = channel.unary_unary(
                 '/proto.MonitorService/UpdateMonitor',
-                request_serializer=proto_dot_user__pb2.UpdateMonitorRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.MonitorResponse.FromString,
+                request_serializer=user__pb2.UpdateMonitorRequest.SerializeToString,
+                response_deserializer=user__pb2.MonitorResponse.FromString,
                 _registered_method=True)
         self.GetMonitor = channel.unary_unary(
                 '/proto.MonitorService/GetMonitor',
-                request_serializer=proto_dot_user__pb2.GetMonitorRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.MonitorResponse.FromString,
+                request_serializer=user__pb2.GetMonitorRequest.SerializeToString,
+                response_deserializer=user__pb2.MonitorResponse.FromString,
                 _registered_method=True)
         self.ListMonitors = channel.unary_unary(
                 '/proto.MonitorService/ListMonitors',
-                request_serializer=proto_dot_user__pb2.ListMonitorsRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.ListMonitorsResponse.FromString,
+                request_serializer=user__pb2.ListMonitorsRequest.SerializeToString,
+                response_deserializer=user__pb2.ListMonitorsResponse.FromString,
                 _registered_method=True)
         self.DeleteMonitor = channel.unary_unary(
                 '/proto.MonitorService/DeleteMonitor',
-                request_serializer=proto_dot_user__pb2.DeleteMonitorRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.DeleteMonitorResponse.FromString,
+                request_serializer=user__pb2.DeleteMonitorRequest.SerializeToString,
+                response_deserializer=user__pb2.DeleteMonitorResponse.FromString,
                 _registered_method=True)
         self.GetStatusPage = channel.unary_unary(
                 '/proto.MonitorService/GetStatusPage',
-                request_serializer=proto_dot_user__pb2.GetStatusPageRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.GetStatusPageResponse.FromString,
+                request_serializer=user__pb2.GetStatusPageRequest.SerializeToString,
+                response_deserializer=user__pb2.GetStatusPageResponse.FromString,
                 _registered_method=True)
         self.GetRecentChecks = channel.unary_unary(
                 '/proto.MonitorService/GetRecentChecks',
-                request_serializer=proto_dot_user__pb2.GetRecentChecksRequest.SerializeToString,
-                response_deserializer=proto_dot_user__pb2.GetRecentChecksResponse.FromString,
+                request_serializer=user__pb2.GetRecentChecksRequest.SerializeToString,
+                response_deserializer=user__pb2.GetRecentChecksResponse.FromString,
+                _registered_method=True)
+        self.ReportMonitorInsight = channel.unary_unary(
+                '/proto.MonitorService/ReportMonitorInsight',
+                request_serializer=user__pb2.ReportMonitorInsightRequest.SerializeToString,
+                response_deserializer=user__pb2.ReportMonitorInsightResponse.FromString,
+                _registered_method=True)
+        self.GetMonitorInsight = channel.unary_unary(
+                '/proto.MonitorService/GetMonitorInsight',
+                request_serializer=user__pb2.GetMonitorInsightRequest.SerializeToString,
+                response_deserializer=user__pb2.GetMonitorInsightResponse.FromString,
                 _registered_method=True)
 
 
@@ -403,43 +413,65 @@ class MonitorServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ReportMonitorInsight(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetMonitorInsight(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_MonitorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateMonitor': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateMonitor,
-                    request_deserializer=proto_dot_user__pb2.CreateMonitorRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.MonitorResponse.SerializeToString,
+                    request_deserializer=user__pb2.CreateMonitorRequest.FromString,
+                    response_serializer=user__pb2.MonitorResponse.SerializeToString,
             ),
             'UpdateMonitor': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateMonitor,
-                    request_deserializer=proto_dot_user__pb2.UpdateMonitorRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.MonitorResponse.SerializeToString,
+                    request_deserializer=user__pb2.UpdateMonitorRequest.FromString,
+                    response_serializer=user__pb2.MonitorResponse.SerializeToString,
             ),
             'GetMonitor': grpc.unary_unary_rpc_method_handler(
                     servicer.GetMonitor,
-                    request_deserializer=proto_dot_user__pb2.GetMonitorRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.MonitorResponse.SerializeToString,
+                    request_deserializer=user__pb2.GetMonitorRequest.FromString,
+                    response_serializer=user__pb2.MonitorResponse.SerializeToString,
             ),
             'ListMonitors': grpc.unary_unary_rpc_method_handler(
                     servicer.ListMonitors,
-                    request_deserializer=proto_dot_user__pb2.ListMonitorsRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.ListMonitorsResponse.SerializeToString,
+                    request_deserializer=user__pb2.ListMonitorsRequest.FromString,
+                    response_serializer=user__pb2.ListMonitorsResponse.SerializeToString,
             ),
             'DeleteMonitor': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteMonitor,
-                    request_deserializer=proto_dot_user__pb2.DeleteMonitorRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.DeleteMonitorResponse.SerializeToString,
+                    request_deserializer=user__pb2.DeleteMonitorRequest.FromString,
+                    response_serializer=user__pb2.DeleteMonitorResponse.SerializeToString,
             ),
             'GetStatusPage': grpc.unary_unary_rpc_method_handler(
                     servicer.GetStatusPage,
-                    request_deserializer=proto_dot_user__pb2.GetStatusPageRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.GetStatusPageResponse.SerializeToString,
+                    request_deserializer=user__pb2.GetStatusPageRequest.FromString,
+                    response_serializer=user__pb2.GetStatusPageResponse.SerializeToString,
             ),
             'GetRecentChecks': grpc.unary_unary_rpc_method_handler(
                     servicer.GetRecentChecks,
-                    request_deserializer=proto_dot_user__pb2.GetRecentChecksRequest.FromString,
-                    response_serializer=proto_dot_user__pb2.GetRecentChecksResponse.SerializeToString,
+                    request_deserializer=user__pb2.GetRecentChecksRequest.FromString,
+                    response_serializer=user__pb2.GetRecentChecksResponse.SerializeToString,
+            ),
+            'ReportMonitorInsight': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReportMonitorInsight,
+                    request_deserializer=user__pb2.ReportMonitorInsightRequest.FromString,
+                    response_serializer=user__pb2.ReportMonitorInsightResponse.SerializeToString,
+            ),
+            'GetMonitorInsight': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetMonitorInsight,
+                    request_deserializer=user__pb2.GetMonitorInsightRequest.FromString,
+                    response_serializer=user__pb2.GetMonitorInsightResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -467,8 +499,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/CreateMonitor',
-            proto_dot_user__pb2.CreateMonitorRequest.SerializeToString,
-            proto_dot_user__pb2.MonitorResponse.FromString,
+            user__pb2.CreateMonitorRequest.SerializeToString,
+            user__pb2.MonitorResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -494,8 +526,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/UpdateMonitor',
-            proto_dot_user__pb2.UpdateMonitorRequest.SerializeToString,
-            proto_dot_user__pb2.MonitorResponse.FromString,
+            user__pb2.UpdateMonitorRequest.SerializeToString,
+            user__pb2.MonitorResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -521,8 +553,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/GetMonitor',
-            proto_dot_user__pb2.GetMonitorRequest.SerializeToString,
-            proto_dot_user__pb2.MonitorResponse.FromString,
+            user__pb2.GetMonitorRequest.SerializeToString,
+            user__pb2.MonitorResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -548,8 +580,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/ListMonitors',
-            proto_dot_user__pb2.ListMonitorsRequest.SerializeToString,
-            proto_dot_user__pb2.ListMonitorsResponse.FromString,
+            user__pb2.ListMonitorsRequest.SerializeToString,
+            user__pb2.ListMonitorsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -575,8 +607,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/DeleteMonitor',
-            proto_dot_user__pb2.DeleteMonitorRequest.SerializeToString,
-            proto_dot_user__pb2.DeleteMonitorResponse.FromString,
+            user__pb2.DeleteMonitorRequest.SerializeToString,
+            user__pb2.DeleteMonitorResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -602,8 +634,8 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/GetStatusPage',
-            proto_dot_user__pb2.GetStatusPageRequest.SerializeToString,
-            proto_dot_user__pb2.GetStatusPageResponse.FromString,
+            user__pb2.GetStatusPageRequest.SerializeToString,
+            user__pb2.GetStatusPageResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -629,8 +661,62 @@ class MonitorService:
             request,
             target,
             '/proto.MonitorService/GetRecentChecks',
-            proto_dot_user__pb2.GetRecentChecksRequest.SerializeToString,
-            proto_dot_user__pb2.GetRecentChecksResponse.FromString,
+            user__pb2.GetRecentChecksRequest.SerializeToString,
+            user__pb2.GetRecentChecksResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReportMonitorInsight(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/proto.MonitorService/ReportMonitorInsight',
+            user__pb2.ReportMonitorInsightRequest.SerializeToString,
+            user__pb2.ReportMonitorInsightResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetMonitorInsight(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/proto.MonitorService/GetMonitorInsight',
+            user__pb2.GetMonitorInsightRequest.SerializeToString,
+            user__pb2.GetMonitorInsightResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -41,11 +41,20 @@ def get_recent_checks(monitor_id: str) -> list[MonitorCheck]:
         raise
 
 
-def _auth_metadata(token: str | None) -> tuple[tuple[str, str], ...]:
-    if not token:
-        return ()
+def get_monitor_name(monitor_id: str) -> str | None:
+    address = os.getenv("UPSTAT_GRPC_ADDRESS", DEFAULT_GRPC_ADDRESS)
+    token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
 
-    return (("authorization", f"Bearer {token}"),)
+    try:
+        with grpc.insecure_channel(address) as channel:
+            stub = user_pb2_grpc.MonitorServiceStub(channel)
+            request = user_pb2.GetMonitorRequest(id=monitor_id)
+            response = stub.GetMonitor(request, timeout=5, metadata=_auth_metadata(token))
+            return response.monitor.name if response.monitor is not None else None
+    except Exception as e:
+        logger.error(f"Failed to get monitor name from gRPC server: {type(e).__name__} - {str(e)}")
+        return None
+
 
 
 def convert_proto_check(check: user_pb2.MonitorCheck) -> MonitorCheck:
@@ -56,6 +65,12 @@ def convert_proto_check(check: user_pb2.MonitorCheck) -> MonitorCheck:
         status_code=check.status_code,
         checked_at=_parse_checked_at(check.checked_at),
     )
+
+
+def _auth_metadata(token: str | None) -> tuple[tuple[str, str], ...]:
+    if not token:
+        return ()
+    return (("authorization", f"Bearer {token}"),)
 
 
 def _parse_checked_at(value: str) -> datetime:
