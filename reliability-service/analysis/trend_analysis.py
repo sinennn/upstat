@@ -1,5 +1,5 @@
 def describe_trend(features: dict) -> str | None:
-    if features["latest_response_time"] > features["average_response_time"]:
+    if features["response_time_trend"] >= 0.20:
         return "latency trend is moving upward"
 
     return None
