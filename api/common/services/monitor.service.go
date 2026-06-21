@@ -237,19 +237,6 @@ func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetR
 
 
 
-func hasInsightPayload(insight *pb.MonitorInsight) bool {
-	if insight == nil {
-		return false
-	}
-
-	return insight.GetRiskScore() != 0 ||
-		insight.GetAnomalyDetected() ||
-		insight.GetSeverity() != "" ||
-		insight.GetSummary() != "" ||
-		insight.GetRecommendedAction() != "" ||
-		insight.GetHumanReadable() != "" ||
-		insight.GetGeneratedAt() != ""
-}
 
 func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
 	if req.GetMonitorId() == "" {
