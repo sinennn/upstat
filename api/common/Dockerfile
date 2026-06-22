@@ -1,5 +1,6 @@
 # Use an official Golang runtime as a parent image
 FROM golang:1.25-alpine
+FROM golang:1.25-alpine
 
 RUN apk add --no-cache git curl
 
