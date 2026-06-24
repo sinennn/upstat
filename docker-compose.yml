@@ -8,10 +8,8 @@ services:
       - ./api/common/.env
     environment:
       - INSIGHT_SERVICE_URL=http://reliability-service:8000
+      - INSIGHT_SERVICE_GRPC_ADDRESS=reliability-service:50051
       - WATCHFILES_FORCE_POLLING=true 
-      
-
-      
     networks:
       - mynetwork
 
@@ -19,6 +17,7 @@ services:
     build: ./reliability-service
     ports:
       - "8000:8000"
+      - "50051:50051"
     env_file:
       - ./api/common/.env
       - ./reliability-service/.env
@@ -26,6 +25,7 @@ services:
       - UPSTAT_GRPC_ADDRESS=upstat_backend:8080
       - UPSTAT_GRPC_AUTH_TOKEN=${UPSTAT_GRPC_AUTH_TOKEN}
       - UPSTAT_GRPC_CHECK_LIMIT=50
+      - GRPC_PORT=50051
     depends_on:
       - upstat_backend
     networks:

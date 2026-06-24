@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/CuesoftCloud/upstat/config"
@@ -9,6 +10,7 @@ import (
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/repositories"
 	"github.com/CuesoftCloud/upstat/utils"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -18,15 +20,34 @@ type MonitorServiceServer struct {
 	MonitorRepo     repositories.MonitorRepository
 	CheckResultRepo repositories.CheckResultRepository
 	IncidentRepo    repositories.IncidentRepository
-	InsightRepo     repositories.InsightRepository
+	InsightGRPCConn *grpc.ClientConn
+	InsightClient   pb.InsightServiceClient
 }
 
 func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
+	insightServiceAddr := os.Getenv("INSIGHT_SERVICE_GRPC_ADDRESS")
+	if insightServiceAddr == "" {
+		insightServiceAddr = "localhost:50051"
+	}
+
+	//go: fix inline 
+	//this thing no work? omo😂
+	conn, err := grpc.Dial(insightServiceAddr, grpc.WithInsecure())
+	if err != nil {
+		return nil
+	}
+
+	var insightClient pb.InsightServiceClient
+	if conn != nil {
+		insightClient = pb.NewInsightServiceClient(conn)
+	}
+
 	return &MonitorServiceServer{
 		MonitorRepo:     repositories.NewMonitorRepository(db),
 		CheckResultRepo: repositories.NewCheckResultRepository(db),
 		IncidentRepo:    repositories.NewIncidentRepository(db),
-		InsightRepo:     repositories.NewInsightRepository(db),
+		InsightGRPCConn: conn,
+		InsightClient:   insightClient,
 	}
 }
 
@@ -241,15 +262,16 @@ func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.Ge
 		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
 	}
 
-	insight, err := s.InsightRepo.GetInsightByMonitor(req.GetMonitorId())
-	if err != nil {
-		return nil, status.Error(codes.Internal, "could not retrieve insight")
-	}
-	if insight == nil {
-		return nil, status.Error(codes.NotFound, "insight not found")
+	if s.InsightClient == nil {
+		return nil, status.Error(codes.Unavailable, "insight service not available")
 	}
 
-	return &pb.GetMonitorInsightResponse{Insight: insightResponse(insight)}, nil
+	insightResp, err := s.InsightClient.GetMonitorInsight(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return insightResp, nil
 }
 
 func (s *MonitorServiceServer) recentUptimeStats(monitors []*models.Monitor) (int64, int64, float64, error) {
@@ -354,19 +376,5 @@ func incidentResponse(incident *models.Incident) *pb.Incident {
 		StartedAt:       incident.StartedAt.Format(time.RFC3339),
 		ResolvedAt:      resolvedAt,
 		DurationSeconds: incident.DurationSeconds,
-	}
-}
-
-func insightResponse(insight *models.MonitorInsight) *pb.MonitorInsight {
-	return &pb.MonitorInsight{
-		MonitorId:         insight.MonitorID,
-		MonitorName:       insight.MonitorName,
-		RiskScore:         int32(insight.RiskScore),
-		AnomalyDetected:   insight.AnomalyDetected,
-		Severity:          insight.Severity,
-		Summary:           insight.Summary,
-		HumanReadable:     insight.HumanReadable,
-		RecommendedAction: insight.RecommendedAction,
-		GeneratedAt:       insight.GeneratedAt.Format(time.RFC3339),
 	}
 }

@@ -22,7 +22,6 @@ service MonitorService{
    rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
    rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse);
    rpc GetRecentChecks(GetRecentChecksRequest) returns (GetRecentChecksResponse);
-   rpc GetMonitorInsight(GetMonitorInsightRequest) returns (GetMonitorInsightResponse);
 }
 
 message GetStatusPageRequest{
@@ -53,26 +52,6 @@ message MonitorCheck {
 
 message GetRecentChecksResponse{
    repeated MonitorCheck checks = 1;
-}
-
-message MonitorInsight {
-  string monitor_id = 1;
-  string monitor_name = 2;
-  int32 risk_score = 3;
-  bool anomaly_detected = 4;
-  string severity = 5;
-  string summary = 6;
-  string recommended_action = 7;
-  string human_readable = 8;
-  string generated_at = 9;
-}
-
-message GetMonitorInsightRequest {
-  string monitor_id = 1;
-}
-
-message GetMonitorInsightResponse {
-  MonitorInsight insight = 1;
 }
 
 message Incident {
