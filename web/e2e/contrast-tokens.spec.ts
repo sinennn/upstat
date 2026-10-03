@@ -251,8 +251,8 @@ test("public status page pills render ≥4.5:1 in both themes (served pages)", a
   }
 });
 
-// ---- rendered surface: SEV badges in dark theme (the on-crit fix) ----------
-test("incident SEV badges render ≥4.5:1 in dark theme (served pages)", async ({
+// ---- rendered surface: incident chips in dark theme (the on-crit fix) ----
+test("incident status chips render ≥4.5:1 in dark theme (served pages)", async ({
   page,
 }) => {
   await page.goto("/signin");
@@ -263,10 +263,10 @@ test("incident SEV badges render ≥4.5:1 in dark theme (served pages)", async (
     document.documentElement.setAttribute("data-theme", "dark"),
   );
 
-  const chips = page.locator("[data-sev]");
+  const chips = page.locator("[data-testid^='incident-'] > span:first-child");
   await chips.first().waitFor({ state: "visible", timeout: 15_000 });
   const count = await chips.count();
-  expect(count, "incidents page renders SEV chips").toBeGreaterThan(0);
+  expect(count, "incidents page renders status chips").toBeGreaterThan(0);
 
   for (let i = 0; i < count; i++) {
     const result = await renderedRatio(chips.nth(i));
@@ -274,7 +274,7 @@ test("incident SEV badges render ≥4.5:1 in dark theme (served pages)", async (
     expect
       .soft(
         result.ratio,
-        `dark: SEV chip "${result.label}" renders ≥ ${AA} (got ${result.ratio.toFixed(2)})`,
+        `dark: incident chip "${result.label}" renders ≥ ${AA} (got ${result.ratio.toFixed(2)})`,
       )
       .toBeGreaterThanOrEqual(AA);
   }

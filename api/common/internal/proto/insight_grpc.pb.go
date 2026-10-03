@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v3.20.3
-// source: proto/insight.proto
+// source: insight.proto
 
 package proto
 
@@ -117,5 +117,5 @@ var InsightService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/insight.proto",
+	Metadata: "insight.proto",
 }

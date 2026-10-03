@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import { useId, useMemo, useRef, useState } from "react";
-import type { Series } from "@/models";
+import type { Series } from "@/models/chart";
 import {
   patternFillStyle,
   seriesDash,

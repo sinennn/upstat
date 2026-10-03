@@ -1,9 +1,7 @@
 # Next.js production image (standalone). node:*-slim (glibc) — Next's Turbopack
 # build workers are unreliable on Alpine, and Next 16 needs Node 20+.
 # Build context is the REPO ROOT (docker-compose `context: .`,
-# `dockerfile: web/Dockerfile`): prebuild embeds the canonical OpenAPI
-# document (docs/api/openapi.yaml) as a string asset, so the spec must
-# ship into the context alongside web/. Context contents are pruned by
+# `dockerfile: web/Dockerfile`), pruned to web/ by
 # web/Dockerfile.dockerignore (BuildKit per-Dockerfile ignore).
 # ---- deps ----
 FROM node:24-slim AS deps
@@ -16,10 +14,11 @@ FROM node:24-slim AS builder
 WORKDIR /app/web
 COPY --from=deps /app/web/node_modules ./node_modules
 COPY web/ ./
-COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
 # NEXT_PUBLIC_* are inlined at build time.
 ARG NEXT_PUBLIC_ENVOY_URL
 ENV NEXT_PUBLIC_ENVOY_URL=$NEXT_PUBLIC_ENVOY_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 RUN npm run build
 
 # ---- runner ----

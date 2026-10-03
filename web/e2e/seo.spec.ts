@@ -42,7 +42,7 @@ const PRODUCTS: Record<string, SeoProfile> = {
   },
   upstat: {
     base: "https://upstat.cuesoft.io",
-    sitemapRoutes: ["/", "/docs/api", "/status/upstat"],
+    sitemapRoutes: ["/", "/status/upstat"],
     faviconSha256:
       "d6c2c8bb146708db10bd09f2d987b3884433e71a1fb992d87e509ad2766f1d2b",
   },

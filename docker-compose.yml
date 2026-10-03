@@ -72,14 +72,13 @@ services:
   web:
     image: cuesoft/upstat-web:latest
     build:
-      # Repo-root context: web/ plus docs/api/openapi.yaml (the OpenAPI
-      # document prebuild embeds for /docs/api); pruned by
-      # web/Dockerfile.dockerignore.
+      # Repo-root context, pruned to web/ by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
         NEXT_PUBLIC_ENVOY_URL: ${NEXT_PUBLIC_ENVOY_URL:-http://localhost:8082}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     ports:
       - "3000:3000"
     depends_on:

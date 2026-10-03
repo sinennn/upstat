@@ -33,16 +33,8 @@ import {
 } from "./sections-top";
 
 export function HomeView() {
-  const {
-    stars,
-    demo,
-    heroCursor,
-    onSignIn,
-    onTryCloud,
-    onSelfHost,
-    onSelfHostDocs,
-    onGithub,
-  } = useHomeController();
+  const { stars, demo, heroCursor, onSignIn, onTryCloud, onSelfHost } =
+    useHomeController();
 
   return (
     <div className="font-ui min-h-screen bg-bg text-text">
@@ -85,9 +77,9 @@ export function HomeView() {
           rows={demo.statusRows}
           updatedAt={demo.statusUpdatedAt}
         />
-        <SelfHostSection onSelfHostDocs={onSelfHostDocs} />
+        <SelfHostSection />
         <CloudSelfHostSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
-        <DevelopersSection onGithub={onGithub} />
+        <DevelopersSection />
         <CommunitySection />
         <FaqSection />
         <FinalCtaSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />

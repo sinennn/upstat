@@ -207,7 +207,7 @@ export function CloudSelfHostSection({
 /* ------------------------------------------------------------------ */
 
 export interface DevelopersSectionProps {
-  onGithub: () => void;
+  onGithub?: () => void;
 }
 
 export function DevelopersSection({ onGithub }: DevelopersSectionProps) {

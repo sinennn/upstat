@@ -2,11 +2,10 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 /**
  * Mobile responsiveness sweep ([Directive 2026-07-19]): home, the public
- * status page and EVERY /dashboard/<area> route render inside the 390px
- * viewport — the document never side-scrolls, <main> never pans, and wide
- * visualizations/tables scroll inside their own horizontal-scroll
- * containers. Detail drawers become full-width sheets. 768 gets a sanity
- * pass. Screenshots land per route in both themes (test-results/).
+ * status page and EVERY /dashboard route render inside the 390px viewport —
+ * the document never side-scrolls, <main> never pans, and wide tables
+ * scroll inside their own containers. 768 gets a sanity pass. Screenshots
+ * land per route in both themes (test-results/).
  */
 
 const MOBILE = { width: 390, height: 844 };
@@ -25,42 +24,21 @@ test("viewport meta never disables pinch-zoom", async ({ page }) => {
   expect(content).not.toMatch(/user-scalable\s*=\s*(no|0)/i);
 });
 
-/** Every route in the web-implementation.md §4 route map (seeded ids §6). */
+/**
+ * Every app route. Ids are the TEST_MODE fake backend's deterministic seed
+ * (fake-backend.ts): the "Website" monitor and its resolved incident.
+ */
 const ROUTES = [
   "/",
   "/signin",
   "/status/upstat",
   "/dashboard",
-  "/dashboard/onboarding",
-  "/dashboard/dashboards",
-  "/dashboard/dashboards/dash_overview",
-  "/dashboard/metrics",
-  "/dashboard/metrics/summary",
-  "/dashboard/logs",
-  "/dashboard/traces",
-  "/dashboard/traces/explorer",
-  "/dashboard/traces/map",
-  "/dashboard/traces/services/api-common",
-  "/dashboard/rum",
-  "/dashboard/rum/new",
-  "/dashboard/uptime",
-  "/dashboard/uptime/mon_homepage",
-  "/dashboard/monitors",
   "/dashboard/monitors/new",
-  "/dashboard/monitors/mon_api",
+  "/dashboard/monitors/65f0a1b20000000000000002",
+  "/dashboard/monitors/65f0a1b20000000000000002/edit",
   "/dashboard/incidents",
-  "/dashboard/incidents/inc_42",
-  "/dashboard/slos",
-  "/dashboard/services",
-  // routed settings tabs (2026-07-20): the bar itself must h-scroll in
-  // the viewport, and every pane reflows — sweep all seven tab routes.
-  "/dashboard/settings/general",
-  "/dashboard/settings/members",
-  "/dashboard/settings/keys",
-  "/dashboard/settings/integrations",
-  "/dashboard/settings/retention",
-  "/dashboard/settings/appearance",
-  "/dashboard/settings/usage",
+  "/dashboard/incidents/65f0a1b20000000000000003",
+  "/dashboard/settings",
 ];
 
 interface OverflowReport {
@@ -141,7 +119,7 @@ function auditOverflow(): OverflowReport {
 
 async function open(page: Page, route: string) {
   await page.goto(route, { waitUntil: "domcontentloaded" });
-  // charts/lists render client-side from the mock — give them a beat
+  // charts/lists render client-side from the fake backend — give them a beat
   await page.waitForTimeout(1_200);
 }
 
@@ -165,11 +143,12 @@ async function assertNoOverflow(page: Page, route: string) {
   ).toEqual([]);
 }
 
-// hermetic start — the dev-persistent store accumulates orgs/incidents from
-// earlier specs; re-seed the §6 narrative so seeded ids resolve
-test.beforeEach(async ({ request }) => {
-  await request.post("/api/mock/v1/reset");
-});
+/** The dashboard needs a session; signing in once keeps it for the tab. */
+async function signIn(page: Page) {
+  await page.goto("/signin");
+  await page.getByRole("button", { name: /continue with google/i }).click();
+  await page.waitForURL("**/dashboard");
+}
 
 function slug(route: string): string {
   return route === "/" ? "home" : route.slice(1).replace(/\//g, "-");
@@ -191,6 +170,7 @@ test.describe("390 — every route fits the mobile viewport", () => {
   test("dark theme sweep + screenshots", async ({ page }, testInfo) => {
     test.setTimeout(240_000);
     await page.setViewportSize(MOBILE);
+    await signIn(page);
     for (const route of ROUTES) {
       await open(page, route);
       await assertNoOverflow(page, route);
@@ -204,6 +184,7 @@ test.describe("390 — every route fits the mobile viewport", () => {
       window.localStorage.setItem("upstat.theme", "light"),
     );
     await page.setViewportSize(MOBILE);
+    await signIn(page);
     for (const route of ROUTES) {
       await open(page, route);
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
@@ -216,6 +197,7 @@ test.describe("390 — every route fits the mobile viewport", () => {
 test("768 — sanity sweep, no route side-scrolls", async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize(TABLET);
+  await signIn(page);
   for (const route of ROUTES) {
     await open(page, route);
     await assertNoOverflow(page, route);
@@ -237,6 +219,7 @@ test.describe("expanded rail — dashboard content reflows", () => {
         window.localStorage.setItem("nav.rail.expanded", "1"),
       );
       await page.setViewportSize({ width, height: 900 });
+      await signIn(page);
       for (const route of DASH_ROUTES) {
         await open(page, route);
         await expect(
@@ -246,8 +229,8 @@ test.describe("expanded rail — dashboard content reflows", () => {
       }
       // densest layouts, both rail states, for the visual record
       for (const route of [
-        "/dashboard/dashboards/dash_overview",
-        "/dashboard/logs",
+        "/dashboard",
+        "/dashboard/monitors/65f0a1b20000000000000002",
       ]) {
         await open(page, route);
         await page.screenshot({
@@ -264,71 +247,4 @@ test.describe("expanded rail — dashboard content reflows", () => {
       }
     });
   }
-});
-
-test("390 — span drawer opens as a full-width sheet inside the viewport", async ({
-  page,
-}) => {
-  await page.setViewportSize(MOBILE);
-  await open(page, "/dashboard/traces/explorer");
-  await page.locator('[data-testid^="trace-"]').first().click();
-  await expect(page.getByTestId("trace-waterfall")).toBeVisible();
-  const spanRow = page
-    .getByRole("list", { name: "Trace spans" })
-    .getByRole("button")
-    .first();
-  await spanRow.scrollIntoViewIfNeeded();
-  await spanRow.click();
-  const drawer = page.locator('aside[aria-label^="Span "]');
-  await expect(drawer).toBeVisible();
-  const box = (await drawer.boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
-  expect(box.width).toBeGreaterThanOrEqual(MOBILE.width - 2); // full-width sheet
-  await assertNoOverflow(page, "/dashboard/traces/explorer (drawer open)");
-  await drawer.getByRole("button", { name: "Close span drawer" }).click();
-  await expect(drawer).toBeHidden();
-});
-
-test("390 — the 12-col dashboard grid stacks; the widget editor fits", async ({
-  page,
-}) => {
-  await page.setViewportSize(MOBILE);
-  await open(page, "/dashboard/dashboards/dash_overview?edit=1");
-  // stacked: every widget starts on the same left edge
-  const lefts = await page.evaluate(() =>
-    [...document.querySelectorAll("[data-widget-id]")].map((el) =>
-      Math.round(el.getBoundingClientRect().x),
-    ),
-  );
-  expect(lefts.length).toBeGreaterThan(1);
-  expect(new Set(lefts).size, "widgets must stack single-column at 390").toBe(
-    1,
-  );
-  // the lg widget-editor modal clamps to the viewport
-  await page.getByTestId("add-widget").click();
-  const modal = page.getByRole("dialog");
-  await expect(modal).toBeVisible();
-  const box = (await modal.boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
-  await assertNoOverflow(
-    page,
-    "/dashboard/dashboards/dash_overview (editor open)",
-  );
-});
-
-test("390 — expanding a log line keeps the document inside the viewport", async ({
-  page,
-}) => {
-  await page.setViewportSize(MOBILE);
-  await open(page, "/dashboard/logs");
-  const line = page
-    .getByRole("list", { name: "Log lines" })
-    .locator("li button")
-    .first();
-  await expect(line).toBeVisible({ timeout: 15_000 }); // live tail flushes in batches
-  await line.scrollIntoViewIfNeeded();
-  await line.click();
-  await assertNoOverflow(page, "/dashboard/logs (line expanded)");
 });

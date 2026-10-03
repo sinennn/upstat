@@ -1,33 +1,27 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/design/ThemeProvider";
 import { TopBar } from "./TopBar";
 
-const renderBar = (props: Parameters<typeof TopBar>[0]) =>
-  render(
+function renderBar(props: Parameters<typeof TopBar>[0]) {
+  return render(
     <ThemeProvider>
       <TopBar {...props} />
     </ThemeProvider>,
   );
+}
 
 describe("TopBar", () => {
-  it("carries org switcher, search hint and unread bell (MI-14)", () => {
-    renderBar({ orgName: "Upstat", unreadCount: 3 });
-    expect(screen.getByText("Upstat")).toBeInTheDocument();
-    expect(screen.getByText("Search")).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("Notifications (3 unread)"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
+  it("shows the signed-in account", () => {
+    renderBar({ email: "ibukun@cuesoft.io" });
+    expect(screen.getByText("ibukun@cuesoft.io")).toBeInTheDocument();
   });
 
-  it("keeps the bell calm without unread alerts", () => {
-    renderBar({ orgName: "Upstat" });
-    expect(screen.getByLabelText("Notifications")).toBeInTheDocument();
-  });
-
-  it("carries the theme toggle in the utility area (parity canon)", () => {
-    renderBar({ orgName: "Upstat" });
-    expect(screen.getByTestId("theme-toggle")).toBeInTheDocument();
+  it("signs out", async () => {
+    const onSignOut = vi.fn();
+    renderBar({ email: "ibukun@cuesoft.io", onSignOut });
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(onSignOut).toHaveBeenCalledOnce();
   });
 });

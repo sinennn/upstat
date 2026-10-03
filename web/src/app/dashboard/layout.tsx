@@ -1,10 +1,9 @@
 import { DashboardShell } from "./shell";
 
 /**
- * /dashboard — the observability app (pages.md Part B; route standard:
- * all app surfaces live under /dashboard/<area>). The shell carries the
- * NavRail + TopBar chrome, the global time provider (MI-1/MI-3) and the
- * MI-17 keyboard map.
+ * /dashboard — monitors, incidents and account settings, all backed by
+ * the Go backend. The shell carries the NavRail + TopBar chrome and the
+ * redirect to /signin when there is no session.
  */
 export default function DashboardLayout({
   children,

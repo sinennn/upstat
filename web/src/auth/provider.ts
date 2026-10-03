@@ -1,22 +1,19 @@
-/**
- * AuthProvider — the seam behind the single Google CTA (X-1, flows/auth.md:
- * Google sign-in only, product-wide; Firebase-backed in production).
- *
- * TEST_MODE ships TestModeAuthProvider; FirebaseAuthProvider lands at
- * backend-integration time behind the same interface.
- */
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar_url?: string;
-}
+import type { User } from "@/models/account";
 
+/** The signed-in user, as UserService returns it. */
+export type AuthUser = User;
+
+/**
+ * AuthProvider — every way the backend lets someone in:
+ * Google (`GoogleAuth`), email + password (`GetUser`), and email sign-up
+ * (`CreateUser`, then sign-in). Each resolves once a session exists.
+ */
 export interface AuthProvider {
-  /** The one sign-in path this product has (X-1). Resolves once a session exists. */
   signInWithGoogle(): Promise<AuthUser>;
+  signInWithPassword(email: string, password: string): Promise<AuthUser>;
+  signUp(name: string, email: string, password: string): Promise<AuthUser>;
   signOut(): Promise<void>;
   currentUser(): AuthUser | null;
-  /** Bearer token for repository calls; null when signed out. */
-  idToken(): Promise<string | null>;
+  /** Re-store the session user after a profile update. */
+  setCurrentUser(user: AuthUser): void;
 }

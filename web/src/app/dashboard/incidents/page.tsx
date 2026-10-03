@@ -1,90 +1,95 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { SevChip, type Sev } from "@/components/ui/SevChip";
+import { clsx } from "clsx";
+import { IncidentRow } from "@/components/ui/IncidentRow";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ageLabel } from "@/controllers/shell";
 import { useIncidentsController } from "@/controllers/incidents";
-import { DeclareIncidentModal } from "./DeclareIncidentModal";
+import { durationLabel, whenLabel } from "@/controllers/shell";
+import type { IncidentStatus } from "@/models";
+
+type Filter = "all" | IncidentStatus;
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "active", label: "Open" },
+  { key: "resolved", label: "Resolved" },
+];
 
 /**
- * B9 incident feed (Figma 131:2901) + declare-incident modal (173:5805):
- * sev picker · title · commander assignment; declaring lands on the
- * timeline (MI-10) and reflects on the public status page.
+ * /dashboard/incidents — ListIncidents across the caller's monitors (the
+ * 100 most recent). Incidents open and resolve automatically; there is
+ * nothing to declare or edit.
  */
 export default function IncidentsPage() {
-  const router = useRouter();
-  const { data, loading } = useIncidentsController();
-  const [declareOpen, setDeclareOpen] = useState(false);
+  const { data, loading, error } = useIncidentsController();
+  const [filter, setFilter] = useState<Filter>("all");
+  const incidents = (data ?? []).filter(
+    (i) => filter === "all" || i.status === filter,
+  );
 
   return (
-    <div data-testid="incidents" className="flex flex-col gap-6 px-6 py-5">
-      <header className="flex items-center justify-between">
+    <div data-testid="incidents" className="flex flex-col gap-5 px-6 py-5">
+      <header className="flex flex-col gap-1">
         <h1 className="text-[20px] font-semibold">Incidents</h1>
-        <Button
-          onClick={() => setDeclareOpen(true)}
-          data-testid="declare-incident"
-        >
-          Declare incident
-        </Button>
+        <p className="text-[13px] leading-[1.45] text-text-2">
+          Opened when a monitor reaches its failure threshold; resolved by its
+          next successful check.
+        </p>
       </header>
 
-      {loading ? (
+      <div role="tablist" aria-label="Filter incidents" className="flex gap-1">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            role="tab"
+            aria-selected={filter === f.key}
+            onClick={() => setFilter(f.key)}
+            className={clsx(
+              "rounded-(--radius) px-3 py-1 text-[13px] transition-colors duration-[var(--duration-fast)]",
+              filter === f.key
+                ? "bg-brand/15 font-medium text-brand-text"
+                : "text-text-2 hover:bg-bg-elev hover:text-text",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {loading && !data ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} kind="line" />
           ))}
         </div>
-      ) : (data ?? []).length === 0 ? (
-        <section
-          aria-label="No incidents"
-          className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] leading-[1.45] text-text-2"
-        >
-          No incidents — may it stay that way. Declare one manually or from a
-          triggered alert.
-        </section>
+      ) : error ? (
+        <p role="alert" className="text-[13px] text-crit-text">
+          Couldn&apos;t load incidents: {error.message}
+        </p>
+      ) : incidents.length === 0 ? (
+        <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
+          {filter === "active" ? "No open incidents." : "No incidents."}
+        </p>
       ) : (
-        <ul aria-label="Incident feed" className="flex flex-col">
-          {(data ?? []).map((incident) => (
-            <li key={incident.id}>
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(`/dashboard/incidents/${incident.id}`)
-                }
-                data-testid={`incident-${incident.key}`}
-                className="flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors duration-[var(--duration-fast)] hover:bg-bg-elev"
-              >
-                <SevChip sev={Math.min(incident.sev, 3) as Sev} />
-                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">
-                  {incident.key} — {incident.title}
-                </span>
-                <span
-                  className={
-                    incident.status === "resolved"
-                      ? "text-[12px] uppercase tracking-wide text-ok-text"
-                      : "text-[12px] uppercase tracking-wide text-warn-text"
-                  }
-                >
-                  {incident.status}
-                </span>
-                <span className="w-24 shrink-0 text-right text-[12px] tabular-nums text-text-2">
-                  {incident.status === "resolved"
-                    ? "resolved"
-                    : `open ${ageLabel(incident.started_at)}`}
-                </span>
-              </button>
-            </li>
+        <section aria-label="Incident list" className="flex flex-col">
+          {incidents.map((incident) => (
+            <IncidentRow
+              key={incident.id}
+              incident={incident}
+              showMonitor
+              href={`/dashboard/incidents/${incident.id}`}
+              startedLabel={whenLabel(incident.started_at)}
+              durationLabel={
+                incident.duration_seconds === null
+                  ? null
+                  : durationLabel(incident.duration_seconds)
+              }
+            />
           ))}
-        </ul>
+        </section>
       )}
-
-      <DeclareIncidentModal
-        open={declareOpen}
-        onClose={() => setDeclareOpen(false)}
-      />
     </div>
   );
 }

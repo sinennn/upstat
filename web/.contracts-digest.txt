@@ -1,0 +1,1012 @@
+### GRPC DIR
+total 16
+drwxr-xr-x  3 mac  staff    96 Sep 22 12:26 .
+drwxr-xr-x  7 mac  staff   224 Sep 22 12:26 ..
+-rw-r--r--  1 mac  staff  5264 Sep 22 12:26 transport.ts
+
+### MON CLIENT METHODS
+34:  constructor(hostname: string, _credentials?: null, _options?: null) {
+39:  createMonitor(
+51:  updateMonitor(
+63:  getMonitor(
+75:  listMonitors(
+87:  deleteMonitor(
+99:  getStatusPage(
+111:  getRecentChecks(
+123:  getMonitorHistory(
+135:  getMonitorInsight(
+147:  listIncidents(
+
+### MON CLIENT IMPORTS
+/**
+ * @fileoverview gRPC-Web client stub for `proto.MonitorService`
+ * (source: `src/proto/user.proto`; package `proto` — matches the Go backend).
+ * Serves the real uptime/monitoring vertical: monitors CRUD, status pages,
+ * check history, uptime stats, incidents, and monitor insights.
+ */
+
+/* eslint-disable */
+import * as grpcWeb from "grpc-web";
+
+import * as user_pb from "./user_pb";
+
+const PREFIX = "/proto.MonitorService";
+
+function descriptor<REQ, RESP>(
+  method: string,
+  requestType: new () => REQ,
+  responseType: { deserializeBinary(bytes: Uint8Array): RESP },
+) {
+  return new grpcWeb.MethodDescriptor(
+    PREFIX + "/" + method,
+    grpcWeb.MethodType.UNARY,
+    requestType,
+    responseType as unknown as new (...args: unknown[]) => RESP,
+    (request: REQ) => (request as { serializeBinary(): Uint8Array }).serializeBinary(),
+    (bytes: Uint8Array) => responseType.deserializeBinary(bytes),
+  );
+}
+
+export class MonitorServiceClient {
+
+### USER CLIENT METHODS
+34:  constructor(hostname: string, _credentials?: null, _options?: null) {
+39:  getUser(
+51:  googleAuth(
+63:  createUser(
+75:  getAllUsers(
+
+### USER CLIENT IMPORTS
+/**
+ * @fileoverview gRPC-Web client stub for `proto.UserService`
+ * (source: `src/proto/user.proto`, package `proto` — matches the Go backend).
+ * Hand-maintained per `src/proto/upstat-message.ts`; the network boundary is
+ * the models/repository layer, which alone calls into these.
+ */
+
+/* eslint-disable */
+import * as grpcWeb from "grpc-web";
+
+import * as user_pb from "./user_pb";
+
+const PREFIX = "/proto.UserService";
+
+function descriptor<REQ, RESP>(
+  method: string,
+  requestType: new () => REQ,
+  responseType: { deserializeBinary(bytes: Uint8Array): RESP },
+) {
+  return new grpcWeb.MethodDescriptor(
+    PREFIX + "/" + method,
+    grpcWeb.MethodType.UNARY,
+    requestType,
+    responseType as unknown as new (...args: unknown[]) => RESP,
+    (request: REQ) => (request as { serializeBinary(): Uint8Array }).serializeBinary(),
+    (bytes: Uint8Array) => responseType.deserializeBinary(bytes),
+  );
+}
+
+export class UserServiceClient {
+
+### user_pb ACCESSORS
+
+### models/monitors.ts
+
+[GetUserRequest]   getEmail(): string {
+   setEmail(v: string): GetUserRequest {
+   getPassword(): string {
+   setPassword(v: string): GetUserRequest {
+
+[GetUserResponse]   getId(): string {
+   setId(v: string): GetUserResponse {
+   getName(): string {
+   setName(v: string): GetUserResponse {
+   getEmail(): string {
+   setEmail(v: string): GetUserResponse {
+   getToken(): string {
+   setToken(v: string): GetUserResponse {
+   getStatus(): string {
+   setStatus(v: string): GetUserResponse {
+   getData(): string {
+   setData(v: string): GetUserResponse {
+
+[GoogleAuthRequest]   getIdToken(): string {
+   setIdToken(v: string): GoogleAuthRequest {
+
+[Empty]
+[GetAllUsersResponse]   getUsersList(): GetUserResponse[] {
+   addUsers(v: GetUserResponse): GetAllUsersResponse {
+   clearUsersList(): GetAllUsersResponse {
+
+[MonitorResponse]   getMonitor(): Monitor | undefined {
+   setMonitor(v: Monitor): MonitorResponse {
+   getStatus(): string {
+   setStatus(v: string): MonitorResponse {
+
+[Monitor]   getId(): string {
+   setId(v: string): Monitor {
+   getOwnerId(): string {
+   setOwnerId(v: string): Monitor {
+   getName(): string {
+   setName(v: string): Monitor {
+   getType(): string {
+   setType(v: string): Monitor {
+   getTarget(): string {
+   setTarget(v: string): Monitor {
+   getCreatedAt(): string {
+   getUpdatedAt(): string {
+   getActive(): boolean {
+   setActive(v: boolean): Monitor {
+   getStatus(): string {
+   setStatus(v: string): Monitor {
+   getIntervalSeconds(): number {
+   getTimeoutSeconds(): number {
+   getFailureThreshold(): number {
+   getConsecutiveFailures(): number {
+   getLastCheckedAt(): string {
+   getLastResponseTimeMs(): number {
+   getLastStatusCode(): number {
+   getMuted(): boolean {
+
+[CreateMonitorRequest]   getName(): string {
+   setName(v: string): CreateMonitorRequest {
+   getType(): string {
+   setType(v: string): CreateMonitorRequest {
+   getTarget(): string {
+   setTarget(v: string): CreateMonitorRequest {
+   getIntervalSeconds(): number {
+   setIntervalSeconds(v: number): CreateMonitorRequest {
+   getTimeoutSeconds(): number {
+   setTimeoutSeconds(v: number): CreateMonitorRequest {
+   getFailureThreshold(): number {
+   setFailureThreshold(v: number): CreateMonitorRequest {
+
+[UpdateMonitorRequest]   getId(): string {
+   setId(v: string): UpdateMonitorRequest {
+   getName(): string {
+   setName(v: string): UpdateMonitorRequest {
+   getType(): string {
+   setType(v: string): UpdateMonitorRequest {
+   getTarget(): string {
+   setTarget(v: string): UpdateMonitorRequest {
+   getActive(): boolean | undefined {
+   setActive(v: boolean): UpdateMonitorRequest {
+   getMuted(): boolean | undefined {
+   setMuted(v: boolean): UpdateMonitorRequest {
+   getIntervalSeconds(): number | undefined {
+   setIntervalSeconds(v: number): UpdateMonitorRequest {
+   getTimeoutSeconds(): number | undefined {
+   setTimeoutSeconds(v: number): UpdateMonitorRequest {
+   getFailureThreshold(): number | undefined {
+   setFailureThreshold(v: number): UpdateMonitorRequest {
+
+[GetMonitorRequest]   getId(): string {
+   setId(v: string): GetMonitorRequest {
+
+[DeleteMonitorRequest]   getId(): string {
+   setId(v: string): DeleteMonitorRequest {
+
+[DeleteMonitorResponse]   getData(): string {
+   getStatus(): string {
+
+[ListMonitorsRequest]
+[ListMonitorsResponse]   getMonitorsList(): Monitor[] {
+
+[GetStatusPageRequest]   getOwnerId(): string {
+   setOwnerId(v: string): GetStatusPageRequest {
+   getSlug(): string {
+   setSlug(v: string): GetStatusPageRequest {
+
+[Incident]   getId(): string {
+   setId(v: string): Incident {
+   getMonitorId(): string {
+   getTitle(): string {
+   getFailureReason(): string {
+   getStatus(): string {
+   getStartedAt(): string {
+   getResolvedAt(): string {
+   getDurationSeconds(): number {
+
+[StatusPageComponent]   getMonitorId(): string {
+   getName(): string {
+   getStatus(): string {
+   getHasUptime(): boolean {
+   getUptimePct(): number {
+   getLastResponseTimeMs(): number {
+   getDaysList(): MonitorUptimeDay[] {
+   getLastCheckAt(): string {
+
+[GetStatusPageResponse]   getMonitorsList(): Monitor[] {
+   getActiveIncidentsList(): Incident[] {
+   getHistoricalIncidentsList(): Incident[] {
+   getUptimePercentage(): number {
+   getTotalChecks(): number {
+   getSuccessfulChecks(): number {
+   getPageName(): string {
+   getComponentsList(): StatusPageComponent[] {
+
+[MonitorCheck]   getMonitorId(): string {
+   getSuccess(): boolean {
+   getResponseTime(): number {
+   getStatusCode(): number {
+   getCheckedAt(): string {
+
+[GetRecentChecksRequest]   getMonitorId(): string {
+   setMonitorId(v: string): GetRecentChecksRequest {
+   getLimit(): number {
+   setLimit(v: number): GetRecentChecksRequest {
+
+[GetRecentChecksResponse]   getChecksList(): MonitorCheck[] {
+
+[GetMonitorHistoryRequest]   getMonitorId(): string {
+   setMonitorId(v: string): GetMonitorHistoryRequest {
+   getDays(): number {
+   setDays(v: number): GetMonitorHistoryRequest {
+   getLimit(): number {
+   setLimit(v: number): GetMonitorHistoryRequest {
+
+[MonitorUptimeDay]   getHasData(): boolean {
+   getDate(): string {
+   getUptimePct(): number {
+   getDownMinutes(): number {
+
+[GetMonitorHistoryResponse]   getRecentChecksList(): MonitorCheck[] {
+   getDaysList(): MonitorUptimeDay[] {
+   getOverallUptimePct(): number {
+   getHasUptime(): boolean {
+
+[ListIncidentsRequest]   getMonitorId(): string {
+   setMonitorId(v: string): ListIncidentsRequest {
+
+[ListIncidentsResponse]   getIncidentsList(): Incident[] {
+
+[GetMonitorInsightRequest]   getMonitorId(): string {
+   setMonitorId(v: string): GetMonitorInsightRequest {
+
+[MonitorInsight]   getMonitorId(): string {
+   getMonitorName(): string {
+   getRiskScore(): number {
+   getAnomalyDetected(): boolean {
+   getSeverity(): string {
+   getSummary(): string {
+   getRecommendedAction(): string {
+   getHumanReadable(): string {
+   getGeneratedAt(): string {
+
+[GetMonitorInsightResponse]   getInsight(): MonitorInsight | undefined {
+
+### auth/index.ts
+/** Monitors / uptime checks — data-model.md §1 (current entities, B7 pillar). */
+
+export type MonitorStatus = "up" | "down" | "pending" | "nodata" | "paused";
+
+export type MonitorType = "website" | "server" | "api" | "blog";
+
+export interface Monitor {
+  id: string;
+  name: string;
+  target: string;
+  type: MonitorType;
+  active: boolean;
+  status: MonitorStatus;
+  muted: boolean;
+  interval_seconds: number;
+  timeout_seconds: number;
+  failure_threshold: number;
+  consecutive_failures: number;
+  last_checked_at: string | null;
+  last_response_time_ms: number | null;
+  last_status_code: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CheckResult {
+  id: string;
+  monitor_id: string;
+  up: boolean;
+  status_code: number;
+  response_time_ms: number;
+  checked_at: string;
+}
+
+/** Per-day rollup for the 90-day uptime strip (UptimeCard). */
+export interface UptimeDay {
+  date: string;
+  /** null = nodata gap. */
+  uptime_pct: number | null;
+  down_minutes: number;
+}
+
+export interface MonitorHistory {
+  monitor_id: string;
+  days: UptimeDay[];
+  /** Recent raw checks for the response-time chart. */
+  recent_checks: CheckResult[];
+  uptime_90d_pct: number | null;
+}
+
+### models/status.ts
+
+### camelCase auth index
+import type { AuthProvider } from "./provider";
+import { TestModeAuthProvider } from "./test-mode";
+
+export type { AuthProvider, AuthUser } from "./provider";
+export { TestModeAuthProvider } from "./test-mode";
+
+let provider: AuthProvider | null = null;
+
+/**
+ * Active auth provider. TEST_MODE → TestModeAuthProvider. The real
+ * FirebaseAuthProvider (Google-only per X-1) slots in here at
+ * backend-integration time — callers never know the difference.
+ */
+export function getAuthProvider(): AuthProvider {
+  if (!provider) {
+    // Only TestModeAuthProvider exists in W0; the factory is the seam.
+    provider = new TestModeAuthProvider();
+  }
+  return provider;
+}
+
+### auth/provider.ts
+/**
+ * Public status page — pages.md B7: `status.upstat.cuesoft.io/{slug}` →
+ * `/status/{slug}`, unauthenticated, deliberately outside `/dashboard`.
+ * The read model behind the `GetStatusPage` data shape over HTTP.
+ */
+
+import type { IncidentPhase, IncidentSev } from "./incidents";
+import type { MonitorStatus, UptimeDay } from "./monitors";
+
+export type StatusPageOverall =
+  "operational" | "degraded" | "partial_outage" | "major_outage";
+
+export interface StatusPageComponent {
+  name: string;
+  status: MonitorStatus;
+  /** 90-day strip (UptimeCard technique). */
+  days: UptimeDay[];
+  uptime_pct: number | null;
+  /** Latency figure from the owning check — the SAME source the uptime
+   *  pillar shows, so list/detail/status page agree (QA 2026-07-19). */
+  p95_ms: number | null;
+}
+
+export interface StatusPageIncident {
+  key: string;
+  title: string;
+  sev: IncidentSev;
+  status: IncidentPhase;
+  started_at: string;
+  updates: { ts: string; phase: IncidentPhase; body: string }[];
+}
+
+export interface StatusPage {
+  slug: string;
+  org_name: string;
+  overall: StatusPageOverall;
+  updated_at: string;
+  components: StatusPageComponent[];
+  /** Open incident first (when any), then resolved history, newest-first. */
+  incidents: StatusPageIncident[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Builder (pages.md B7 [Designed 2026-07-20] — settings surface)       */
+/* ------------------------------------------------------------------ */
+
+/** One builder row — row order IS the public page order (design.md §8.2b). */
+export interface StatusPageComponentConfig {
+  id: string;
+  /** Public display name (inline rename). */
+  name: string;
+  /** Mapped uptime check (monitor-mapping Select); null = unmapped. */
+  monitor_id: string | null;
+}
+
+/**
+ * The status-page builder document: branding (page name · slug) + the
+ * ordered component list. The public page it produces is the existing
+ * `/status/{slug}` construction.
+ */
+export interface StatusPageConfig {
+  /** Shown in the public page header. */
+  name: string;
+  /** Public at /status/{slug} — owner-chosen, unique (pages.md B7). */
+  slug: string;
+  components: StatusPageComponentConfig[];
+}
+
+### models/incidents.ts
+import type { AuthProvider } from "./provider";
+import { TestModeAuthProvider } from "./test-mode";
+
+export type { AuthProvider, AuthUser } from "./provider";
+export { TestModeAuthProvider } from "./test-mode";
+
+let provider: AuthProvider | null = null;
+
+/**
+ * Active auth provider. TEST_MODE → TestModeAuthProvider. The real
+ * FirebaseAuthProvider (Google-only per X-1) slots in here at
+ * backend-integration time — callers never know the difference.
+ */
+export function getAuthProvider(): AuthProvider {
+  if (!provider) {
+    // Only TestModeAuthProvider exists in W0; the factory is the seam.
+    provider = new TestModeAuthProvider();
+  }
+  return provider;
+}
+
+### env.ts
+/**
+ * AuthProvider — the seam behind the single Google CTA (X-1, flows/auth.md:
+ * Google sign-in only, product-wide; Firebase-backed in production).
+ *
+ * TEST_MODE ships TestModeAuthProvider; FirebaseAuthProvider lands at
+ * backend-integration time behind the same interface.
+ */
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string;
+}
+
+export interface AuthProvider {
+  /** The one sign-in path this product has (X-1). Resolves once a session exists. */
+  signInWithGoogle(): Promise<AuthUser>;
+  signOut(): Promise<void>;
+  currentUser(): AuthUser | null;
+  /** Bearer token for repository calls; null when signed out. */
+  idToken(): Promise<string | null>;
+}
+
+### auth/session.ts
+/** Incidents — data-model.md §5 INCIDENT_V2 + TIMELINE_ENTRY; pages.md B9. */
+
+export type IncidentSev = 1 | 2 | 3 | 4;
+
+/**
+ * Lifecycle phases as rendered by the timeline / status page
+ * (IncidentHistoryEntry: investigating / identified / monitoring / resolved).
+ */
+export type IncidentPhase =
+  "investigating" | "identified" | "monitoring" | "resolved";
+
+export interface IncidentRoles {
+  commander: string;
+  responders: string[];
+}
+
+export interface Incident {
+  id: string;
+  org_id: string;
+  /** Human key, e.g. `INC-42`. */
+  key: string;
+  title: string;
+  sev: IncidentSev;
+  status: IncidentPhase;
+  roles: IncidentRoles;
+  started_at: string;
+  resolved_at: string | null;
+  /** Cloud Storage key once a postmortem is attached. */
+  postmortem_key: string | null;
+  /** Services implicated (feeds status-page linkage). */
+  services: string[];
+}
+
+export interface TimelineEntry {
+  id: string;
+  incident_id: string;
+  ts: string;
+  author: string;
+  phase: IncidentPhase;
+  body: string;
+}
+
+/** One frozen timeline event inside a postmortem (id-less snapshot). */
+export interface PostmortemTimelineEvent {
+  ts: string;
+  phase: IncidentPhase;
+  author: string;
+  body: string;
+}
+
+/**
+ * B9 postmortem — the on-resolve template: impact / root-cause / action
+ * sections composed by the responder, plus the incident timeline frozen
+ * at composition time (auto-filled server-side from the timeline entries).
+ * Saving one sets the incident's `postmortem_key`.
+ */
+export interface Postmortem {
+  incident_id: string;
+  title: string;
+  author: string;
+  created_at: string;
+  updated_at: string;
+  impact: string;
+  root_cause: string;
+  action_items: string[];
+  timeline: PostmortemTimelineEvent[];
+}
+
+/** Client-composed postmortem fields (the mock freezes the timeline). */
+export type PostmortemInput = Pick<
+  Postmortem,
+  "author" | "impact" | "root_cause" | "action_items"
+>;
+// Typed access to public (browser-exposed) environment variables.
+// NEXT_PUBLIC_* values are inlined at build time.
+export const env = {
+  /**
+   * Base path the repository layer talks to: the in-app mock server in
+   * TEST_MODE, otherwise `NEXT_PUBLIC_API_BASE`
+   * (api.upstat.cuesoft.io once the HTTP surfaces land).
+   */
+  apiBase: process.env.NEXT_PUBLIC_API_BASE || "/api/mock",
+  /** Opt-in product analytics (models/analytics.ts; never on in TEST_MODE). */
+  analytics: process.env.NEXT_PUBLIC_ANALYTICS === "1",
+  /** gRPC-Web endpoint (Envoy) for the monitoring vertical. */
+  envoyUrl: process.env.NEXT_PUBLIC_ENVOY_URL || "http://localhost:8082",
+  /**
+   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
+   * - the single Google CTA signs straight in (no Google handshake), and
+   * - the repository client targets the in-app mock server (/api/mock).
+   */
+  testMode: process.env.NEXT_PUBLIC_TEST_MODE === "1",
+  /**
+   * Transport for the *completed* uptime/monitoring vertical (X-8: gRPC-Web
+   * through Envoy is the real-backend path; there is no HTTP/JSON monitor
+   * API). TEST_MODE keeps the in-app mock so unit/e2e runs stay hermetic and
+   * the app can be developed without a backend.
+   *
+   * Pillars whose backend does not exist yet (logs, traces, RUM, advanced
+   * metrics, dashboards, SLOs, services) remain mock-backed in both modes —
+   * see `models/repositories/index.ts`.
+   */
+  grpcUptime: process.env.NEXT_PUBLIC_TEST_MODE !== "1",
+} as const;
+
+### repo index 186-274
+import type { AuthUser } from "./provider";
+
+/**
+ * Gateway session store — the bearer credential the Go backend issues after
+ * `UserService/GoogleAuth` and validates on every authenticated RPC
+ * (`util.AuthenticateInterceptor`, HS256 JWT).
+ *
+ * This is deliberately NOT an auth system: it is the storage half of the
+ * `AuthProvider` seam, shared by the provider that *mints* the session
+ * (auth/gateway.ts) and the transport that *spends* it
+ * (models/repositories/grpc/transport.ts). Keeping it in one place means the
+ * token never has to travel through controllers or views.
+ *
+ * sessionStorage (not localStorage) — the credential dies with the tab/
+ * webview, matching the fleet session standard and keeping the Tauri desktop
+ * build from persisting a token to disk.
+ */
+
+const SESSION_KEY = "upstat.gateway-session";
+
+export interface GatewaySession {
+  token: string;
+  user: AuthUser;
+}
+
+function storage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage;
+}
+
+export function readGatewaySession(): GatewaySession | null {
+  const store = storage();
+  if (!store) return null;
+  const raw = store.getItem(SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as GatewaySession;
+    if (!parsed?.token || !parsed?.user) return null;
+    return parsed;
+  } catch {
+    // a corrupt entry is treated as "signed out", never a crash
+    return null;
+  }
+}
+
+export function writeGatewaySession(session: GatewaySession): void {
+  storage()?.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+export function clearGatewaySession(): void {
+  storage()?.removeItem(SESSION_KEY);
+}
+
+/** Bearer token for repository calls; null when signed out. */
+export function getSessionToken(): string | null {
+  return readGatewaySession()?.token ?? null;
+}
+
+### auth/test-mode.ts
+  remove: (id: string) => http.delete(`/v1/views/${id}`),
+};
+
+/** Public status page read (pages.md B7 — unauthenticated by design). */
+export const statusRepo = {
+  bySlug: (slug: string) => http.get<StatusPage>(`/v1/status/${slug}`),
+  /** B7 builder document — branding + ordered component list. */
+  config: () => http.get<StatusPageConfig>("/v1/status-page"),
+  updateConfig: (config: StatusPageConfig) =>
+    http.put<StatusPageConfig>("/v1/status-page", config),
+};
+
+/** Incidents + timeline (api.md §6; pages.md B9; MI-10). */
+export const incidentsRepo = {
+  list: () => http.get<Incident[]>("/v1/incidents"),
+  get: (id: string) => http.get<Incident>(`/v1/incidents/${id}`),
+  declare: (input: { title: string; sev: number; commander: string }) =>
+    http.post<Incident>("/v1/incidents", input),
+  update: (id: string, patch: Partial<Incident>) =>
+    http.patch<Incident>(`/v1/incidents/${id}`, patch),
+  timeline: (id: string) =>
+    http.get<TimelineEntry[]>(`/v1/incidents/${id}/timeline`),
+  postUpdate: (
+    id: string,
+    entry: { phase?: string; body: string; author: string },
+  ) => http.post<TimelineEntry>(`/v1/incidents/${id}/timeline`, entry),
+  /** B9 postmortem template — resolved incidents only; 404 until composed. */
+  postmortem: (id: string) =>
+    http.get<Postmortem>(`/v1/incidents/${id}/postmortem`),
+  savePostmortem: (id: string, input: PostmortemInput) =>
+    http.put<Postmortem>(`/v1/incidents/${id}/postmortem`, input),
+};
+
+/** SLOs (pages.md B10). */
+export const slosRepo = {
+  list: () => http.get<Slo[]>("/v1/slos"),
+  create: (
+    input: Omit<
+      Slo,
+      | "id"
+      | "org_id"
+      | "current"
+      | "budget_remaining_pct"
+      | "burn_rate"
+      | "state"
+    >,
+  ) => http.post<Slo>("/v1/slos", input),
+  remove: (id: string) => http.delete(`/v1/slos/${id}`),
+};
+
+/** Service catalog (pages.md B11). */
+export const catalogRepo = {
+  list: () => http.get<ServiceCatalogEntry[]>("/v1/catalog"),
+  create: (input: Omit<ServiceCatalogEntry, "id">) =>
+    http.post<ServiceCatalogEntry>("/v1/catalog", input),
+  update: (id: string, patch: Partial<ServiceCatalogEntry>) =>
+    http.patch<ServiceCatalogEntry>(`/v1/catalog/${id}`, patch),
+  remove: (id: string) => http.delete(`/v1/catalog/${id}`),
+};
+
+/** API keys & ingestion tokens (pages.md B12). */
+export const keysRepo = {
+  list: () => http.get<ApiKey[]>("/v1/keys"),
+  create: (input: {
+    kind: ApiKey["kind"];
+    name: string;
+    scope: ApiKey["scope"];
+  }) => http.post<ApiKeyWithSecret>("/v1/keys", input),
+  rotate: (id: string) => http.post<ApiKeyWithSecret>(`/v1/keys/${id}/rotate`),
+  revoke: (id: string) => http.delete(`/v1/keys/${id}`),
+};
+
+/** Usage metering per pillar (pages.md B12, OBS-012). */
+export const usageRepo = {
+  report: () => http.get<UsageReport>("/v1/usage"),
+};
+
+/** Members & roles (pages.md B12). */
+export const membersRepo = {
+  list: () => http.get<Member[]>("/v1/members"),
+  invite: (input: { email: string; role: MemberRole }) =>
+    http.post<Member>("/v1/members", input),
+  setRole: (id: string, role: MemberRole) =>
+    http.patch<Member>(`/v1/members/${id}`, { role }),
+  remove: (id: string) => http.delete(`/v1/members/${id}`),
+};
+
+/** GitHub star fetch (A13 runtime star count). */
+export * from "./github";
+
+### controllers/monitors.ts
+import type { AuthProvider, AuthUser } from "./provider";
+
+const TEST_USER: AuthUser = {
+  id: "usr_ibukun",
+  name: "Ibukun",
+  email: "ibukun@cuesoft.io",
+};
+
+// Fleet canon (P16): TEST_MODE session keys are `<product>.test-session`;
+// upstat keeps sessionStorage (already the dictated storage).
+const STORAGE_KEY = "upstat.test-session";
+
+/**
+ * TEST_MODE auth (`NEXT_PUBLIC_TEST_MODE=1`): no Firebase, no network —
+ * sign-in immediately establishes a deterministic session so Playwright and
+ * local dev go straight from /signin to /dashboard.
+ */
+export class TestModeAuthProvider implements AuthProvider {
+  async signInWithGoogle(): Promise<AuthUser> {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(TEST_USER));
+    }
+    return TEST_USER;
+  }
+
+  async signOut(): Promise<void> {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  currentUser(): AuthUser | null {
+    if (typeof window === "undefined") return null;
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  }
+
+  async idToken(): Promise<string | null> {
+    return this.currentUser() ? "test-mode-token" : null;
+  }
+}
+"use client";
+
+import { useCallback } from "react";
+import { monitorsRepo } from "@/models/repositories";
+import type { Monitor, MonitorStatus } from "@/models";
+import type { StatusPillStatus } from "@/components/ui/StatusPill";
+import { useRuleTest } from "./alerts";
+import { useRequest } from "./use-request";
+
+/** Monitor state → StatusPill tint (§8.2: paused → nodata tint is the pill's own mapping). */
+export function monitorPillStatus(status: MonitorStatus): StatusPillStatus {
+  switch (status) {
+    case "up":
+      return "ok";
+    case "down":
+      return "crit";
+    case "nodata":
+      return "nodata";
+    case "paused":
+      return "paused";
+    case "pending":
+      return "pending";
+  }
+}
+
+/** Monitors controller — uptime checks CRUD + mute (pages.md B7/B8). */
+export function useMonitorsController() {
+  const state = useRequest(() => monitorsRepo.list(), []);
+
+  const create = useCallback(
+    async (
+      input: Pick<Monitor, "name" | "target" | "type"> & Partial<Monitor>,
+    ) => {
+      const monitor = await monitorsRepo.create(input);
+      await state.reload();
+      return monitor;
+    },
+    [state],
+  );
+
+  const setMuted = useCallback(
+    async (id: string, muted: boolean) => {
+      await monitorsRepo.update(id, { muted });
+      await state.reload();
+    },
+    [state],
+  );
+
+  const remove = useCallback(
+    async (id: string) => {
+      await monitorsRepo.remove(id);
+      await state.reload();
+    },
+    [state],
+  );
+
+  return { ...state, create, setMuted, remove };
+}
+
+/** B7 overview — UptimeCard strips for the first three live checks. */
+export function useUptimeCardsController(monitors: Monitor[] | null) {
+  const ids = (monitors ?? [])
+    .filter((m) => m.status !== "pending")
+    .slice(0, 3)
+    .map((m) => m.id)
+    .join(",");
+  return useRequest(async () => {
+    if (!ids) return [];
+    return Promise.all(ids.split(",").map((id) => monitorsRepo.history(id)));
+  }, [ids]);
+}
+
+/** Per-monitor detail: check history + 90-day strip + MI-9 test replay. */
+export function useMonitorController(id: string) {
+  const monitor = useRequest(() => monitorsRepo.get(id), [id]);
+  const history = useRequest(() => monitorsRepo.history(id), [id]);
+  const test = useRuleTest(useCallback(() => monitorsRepo.test(id), [id]));
+  return { monitor, history, ...test };
+}
+
+### transport.ts
+import type * as grpcWeb from "grpc-web";
+
+import { env } from "@/config/env";
+import { getSessionToken } from "@/auth/session";
+import { MonitorServiceClient } from "@/proto/MonitorServiceClientPb";
+import { UserServiceClient } from "@/proto/UserServiceClientPb";
+import { ApiError } from "../../errors";
+
+/**
+ * gRPC-Web transport — the real backend seam for the uptime/monitoring
+ * vertical.
+ *
+ *   view → controller → repository (grpc/*) → this transport →
+ *   gRPC-Web → Envoy (:8082) → api/common gRPC (:8080) → Mongo
+ *
+ * This module and its siblings under `grpc/` are the ONLY place the app
+ * speaks gRPC; views never see it (enforced by `check:boundaries`) and
+ * controllers never touch it.
+ */
+
+/**
+ * gRPC status codes we can receive (grpc-web `StatusCode` enum values).
+ * Declared numerically rather than imported from the enum so this file does
+ * not need a value import of `grpc-web` (types only).
+ */
+const GRPC_INVALID_ARGUMENT = 3;
+const GRPC_NOT_FOUND = 5;
+const GRPC_ALREADY_EXISTS = 6;
+const GRPC_PERMISSION_DENIED = 7;
+const GRPC_FAILED_PRECONDITION = 9;
+const GRPC_UNIMPLEMENTED = 12;
+const GRPC_INTERNAL = 13;
+const GRPC_UNAVAILABLE = 14;
+const GRPC_UNAUTHENTICATED = 16;
+
+/**
+ * gRPC status → (HTTP-equivalent status, stable snake_case code).
+ *
+ * The repositories speak the ecosystem error envelope (models/errors.ts);
+ * gRPC has its own code space, so every RPC failure is normalized here —
+ * once, at the boundary — instead of leaking `RpcError` into controllers.
+ */
+function envelopeFor(code: number): { status: number; code: string } {
+  switch (code) {
+    case GRPC_INVALID_ARGUMENT:
+      return { status: 422, code: "bad_shape" };
+    case GRPC_NOT_FOUND:
+      // Cross-tenant reads always read `not_found` (errors.ts contract):
+      // the backend returns NotFound for another owner's monitor.
+      return { status: 404, code: "not_found" };
+    case GRPC_ALREADY_EXISTS:
+      return { status: 409, code: "already_exists" };
+    case GRPC_PERMISSION_DENIED:
+      return { status: 403, code: "forbidden" };
+    case GRPC_FAILED_PRECONDITION:
+      return { status: 412, code: "failed_precondition" };
+    case GRPC_UNIMPLEMENTED:
+      return { status: 501, code: "unimplemented" };
+    case GRPC_UNAUTHENTICATED:
+      return { status: 401, code: "unauthenticated" };
+    case GRPC_UNAVAILABLE:
+      return { status: 503, code: "unavailable" };
+    case GRPC_INTERNAL:
+    default:
+      return { status: 500, code: "internal" };
+  }
+}
+
+let monitorClient: MonitorServiceClient | null = null;
+let userClient: UserServiceClient | null = null;
+
+/** `proto.MonitorService` client, pointed at the Envoy gRPC-Web endpoint. */
+export function monitorClientFor(): MonitorServiceClient {
+  if (!monitorClient) monitorClient = new MonitorServiceClient(env.envoyUrl);
+  return monitorClient;
+}
+
+/** `proto.UserService` client, pointed at the Envoy gRPC-Web endpoint. */
+export function userClientFor(): UserServiceClient {
+  if (!userClient) userClient = new UserServiceClient(env.envoyUrl);
+  return userClient;
+}
+
+/**
+ * Request metadata carrying the gateway session. `authorization` is on the
+ * Envoy CORS allow-list (deploy/helm/envoy/envoy.yaml), so the browser
+ * preflight passes it through untouched.
+ */
+export function authMetadata(): grpcWeb.Metadata {
+  const token = getSessionToken();
+  return token ? { authorization: `Bearer ${token}` } : {};
+}
+
+export interface RpcCallOptions {
+  /** Send the bearer session (authenticated RPCs). Default: true. */
+  authenticated?: boolean;
+}
+
+/**
+ * Runs a unary gRPC-Web call and normalizes failures into `ApiError`.
+ *
+ * `RpcError.code` is the numeric gRPC status and `message` is the backend's
+ * `status.Error` text (e.g. "monitor not found"); both are preserved so the
+ * UI copy stays truthful to what the service actually rejected.
+ */
+export async function call<T>(
+  run: (metadata: grpcWeb.Metadata) => Promise<T>,
+  options: RpcCallOptions = {},
+): Promise<T> {
+  const authenticated = options.authenticated ?? true;
+  const metadata = authenticated ? authMetadata() : {};
+  try {
+    return await run(metadata);
+  } catch (e) {
+    const rpc = e as { code?: number; message?: string };
+    if (typeof rpc?.code === "number") {
+      const { status, code } = envelopeFor(rpc.code);
+      throw new ApiError(status, {
+        code,
+        message: rpc.message || "the monitoring service rejected the request",
+      });
+    }
+    // Transport-level failure (Envoy unreachable, CORS, offline): the
+    // backend never answered, so report it as unavailable rather than
+    // pretending it was a bad request.
+    throw new ApiError(503, {
+      code: "unavailable",
+      message: e instanceof Error ? e.message : "the backend is unreachable",
+    });
+  }
+}
+
+/**
+ * An RPC the current backend does not expose. Used by the gRPC repositories
+ * for UI affordances whose contracts exist in the design but have no
+ * service method yet — surfaces as a normal `ApiError` (501) so callers can
+ * degrade honestly instead of silently succeeding.
+ */
+export function unimplemented(rpc: string): ApiError {
+  return new ApiError(501, {
+    code: "unimplemented",
+    message: `${rpc} is not implemented by the monitoring backend yet`,
+  });
+}
+
+### GO statuses
+internal/service/checker_service.go:54:		return checkExecutionResult{Status: "down", Error: err.Error(), ResponseTimeMs: 0}
+internal/service/checker_service.go:62:		return checkExecutionResult{Status: "down", ResponseTimeMs: responseTime, Error: err.Error()}
+internal/service/monitor_service_test.go:138:		Status:           "up",
+internal/service/monitor_service_test.go:265:			checks: []*model.CheckResults{{MonitorID: monitor.Id.Hex(), Status: "up", ResponseTimeMs: 120}},
+internal/service/monitor_service_test.go:295:	inc := &model.Incident{Id: primitive.NewObjectID(), MonitorID: monitor.Id.Hex(), Title: "checkout is down", Status: "active", StartedAt: time.Now()}
+internal/service/monitor_service.go:88:		Status:              "unknown",
+internal/service/monitor_service.go:101:		Status:  "success",
+internal/service/monitor_service.go:128:		Status:  "success",
+internal/service/monitor_service.go:200:		Status:  "success",
+internal/service/monitor_service.go:227:		Status: "success",
+internal/service/monitor_worker_lifecycle_test.go:68:	inc.Status = "resolved"
+internal/service/monitor_worker_lifecycle_test.go:86:		Status:           "up",
+internal/service/monitor_worker_lifecycle_test.go:103:			return checkExecutionResult{Status: "down", StatusCode: 503, ResponseTimeMs: 200}
+internal/service/monitor_worker_lifecycle_test.go:126:	monitor.Status = "down"
+internal/service/monitor_worker_lifecycle_test.go:131:		return checkExecutionResult{Status: "up", StatusCode: 200, ResponseTimeMs: 40}
+internal/service/monitor_worker_service.go:182:		nextStatus = "down"
+internal/service/monitor_worker_service.go:194:				Status:        "active",
+internal/service/user_service.go:112:		Status: "success",
+internal/service/user_service.go:139:		Status: "success",
+internal/service/user_service.go:155:		Status: "success",

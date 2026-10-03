@@ -179,8 +179,10 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({
       [
         ["Docs", "https://cuesoft.gitbook.io/upstat"],
         ["Quickstart", "https://cuesoft.gitbook.io/upstat/setup"],
-        // In-product Scalar reference (X-2) — /docs/api renders the spec.
-        ["API reference", "/docs/api"],
+        [
+          "gRPC reference",
+          "https://github.com/cuesoftinc/upstat/blob/main/api/common/docs/grpc-api.md",
+        ],
         [
           "Self-host guide",
           "https://cuesoft.gitbook.io/upstat/system/deployment",

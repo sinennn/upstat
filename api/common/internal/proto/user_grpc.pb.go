@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v3.20.3
-// source: proto/user.proto
+// source: user.proto
 
 package proto
 
@@ -307,17 +307,20 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/user.proto",
+	Metadata: "user.proto",
 }
 
 const (
-	MonitorService_CreateMonitor_FullMethodName   = "/proto.MonitorService/CreateMonitor"
-	MonitorService_UpdateMonitor_FullMethodName   = "/proto.MonitorService/UpdateMonitor"
-	MonitorService_GetMonitor_FullMethodName      = "/proto.MonitorService/GetMonitor"
-	MonitorService_ListMonitors_FullMethodName    = "/proto.MonitorService/ListMonitors"
-	MonitorService_DeleteMonitor_FullMethodName   = "/proto.MonitorService/DeleteMonitor"
-	MonitorService_GetStatusPage_FullMethodName   = "/proto.MonitorService/GetStatusPage"
-	MonitorService_GetRecentChecks_FullMethodName = "/proto.MonitorService/GetRecentChecks"
+	MonitorService_CreateMonitor_FullMethodName     = "/proto.MonitorService/CreateMonitor"
+	MonitorService_UpdateMonitor_FullMethodName     = "/proto.MonitorService/UpdateMonitor"
+	MonitorService_GetMonitor_FullMethodName        = "/proto.MonitorService/GetMonitor"
+	MonitorService_ListMonitors_FullMethodName      = "/proto.MonitorService/ListMonitors"
+	MonitorService_DeleteMonitor_FullMethodName     = "/proto.MonitorService/DeleteMonitor"
+	MonitorService_GetStatusPage_FullMethodName     = "/proto.MonitorService/GetStatusPage"
+	MonitorService_GetRecentChecks_FullMethodName   = "/proto.MonitorService/GetRecentChecks"
+	MonitorService_GetMonitorHistory_FullMethodName = "/proto.MonitorService/GetMonitorHistory"
+	MonitorService_GetMonitorInsight_FullMethodName = "/proto.MonitorService/GetMonitorInsight"
+	MonitorService_ListIncidents_FullMethodName     = "/proto.MonitorService/ListIncidents"
 )
 
 // MonitorServiceClient is the client API for MonitorService service.
@@ -331,6 +334,9 @@ type MonitorServiceClient interface {
 	DeleteMonitor(ctx context.Context, in *DeleteMonitorRequest, opts ...grpc.CallOption) (*DeleteMonitorResponse, error)
 	GetStatusPage(ctx context.Context, in *GetStatusPageRequest, opts ...grpc.CallOption) (*GetStatusPageResponse, error)
 	GetRecentChecks(ctx context.Context, in *GetRecentChecksRequest, opts ...grpc.CallOption) (*GetRecentChecksResponse, error)
+	GetMonitorHistory(ctx context.Context, in *GetMonitorHistoryRequest, opts ...grpc.CallOption) (*GetMonitorHistoryResponse, error)
+	GetMonitorInsight(ctx context.Context, in *GetMonitorInsightRequest, opts ...grpc.CallOption) (*GetMonitorInsightResponse, error)
+	ListIncidents(ctx context.Context, in *ListIncidentsRequest, opts ...grpc.CallOption) (*ListIncidentsResponse, error)
 }
 
 type monitorServiceClient struct {
@@ -411,6 +417,36 @@ func (c *monitorServiceClient) GetRecentChecks(ctx context.Context, in *GetRecen
 	return out, nil
 }
 
+func (c *monitorServiceClient) GetMonitorHistory(ctx context.Context, in *GetMonitorHistoryRequest, opts ...grpc.CallOption) (*GetMonitorHistoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMonitorHistoryResponse)
+	err := c.cc.Invoke(ctx, MonitorService_GetMonitorHistory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorServiceClient) GetMonitorInsight(ctx context.Context, in *GetMonitorInsightRequest, opts ...grpc.CallOption) (*GetMonitorInsightResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMonitorInsightResponse)
+	err := c.cc.Invoke(ctx, MonitorService_GetMonitorInsight_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorServiceClient) ListIncidents(ctx context.Context, in *ListIncidentsRequest, opts ...grpc.CallOption) (*ListIncidentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListIncidentsResponse)
+	err := c.cc.Invoke(ctx, MonitorService_ListIncidents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MonitorServiceServer is the server API for MonitorService service.
 // All implementations must embed UnimplementedMonitorServiceServer
 // for forward compatibility.
@@ -422,6 +458,9 @@ type MonitorServiceServer interface {
 	DeleteMonitor(context.Context, *DeleteMonitorRequest) (*DeleteMonitorResponse, error)
 	GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error)
 	GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error)
+	GetMonitorHistory(context.Context, *GetMonitorHistoryRequest) (*GetMonitorHistoryResponse, error)
+	GetMonitorInsight(context.Context, *GetMonitorInsightRequest) (*GetMonitorInsightResponse, error)
+	ListIncidents(context.Context, *ListIncidentsRequest) (*ListIncidentsResponse, error)
 	mustEmbedUnimplementedMonitorServiceServer()
 }
 
@@ -452,6 +491,15 @@ func (UnimplementedMonitorServiceServer) GetStatusPage(context.Context, *GetStat
 }
 func (UnimplementedMonitorServiceServer) GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRecentChecks not implemented")
+}
+func (UnimplementedMonitorServiceServer) GetMonitorHistory(context.Context, *GetMonitorHistoryRequest) (*GetMonitorHistoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMonitorHistory not implemented")
+}
+func (UnimplementedMonitorServiceServer) GetMonitorInsight(context.Context, *GetMonitorInsightRequest) (*GetMonitorInsightResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMonitorInsight not implemented")
+}
+func (UnimplementedMonitorServiceServer) ListIncidents(context.Context, *ListIncidentsRequest) (*ListIncidentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListIncidents not implemented")
 }
 func (UnimplementedMonitorServiceServer) mustEmbedUnimplementedMonitorServiceServer() {}
 func (UnimplementedMonitorServiceServer) testEmbeddedByValue()                        {}
@@ -600,6 +648,60 @@ func _MonitorService_GetRecentChecks_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MonitorService_GetMonitorHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMonitorHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServiceServer).GetMonitorHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitorService_GetMonitorHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServiceServer).GetMonitorHistory(ctx, req.(*GetMonitorHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MonitorService_GetMonitorInsight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMonitorInsightRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServiceServer).GetMonitorInsight(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitorService_GetMonitorInsight_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServiceServer).GetMonitorInsight(ctx, req.(*GetMonitorInsightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MonitorService_ListIncidents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIncidentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServiceServer).ListIncidents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitorService_ListIncidents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServiceServer).ListIncidents(ctx, req.(*ListIncidentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MonitorService_ServiceDesc is the grpc.ServiceDesc for MonitorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -635,7 +737,19 @@ var MonitorService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetRecentChecks",
 			Handler:    _MonitorService_GetRecentChecks_Handler,
 		},
+		{
+			MethodName: "GetMonitorHistory",
+			Handler:    _MonitorService_GetMonitorHistory_Handler,
+		},
+		{
+			MethodName: "GetMonitorInsight",
+			Handler:    _MonitorService_GetMonitorInsight_Handler,
+		},
+		{
+			MethodName: "ListIncidents",
+			Handler:    _MonitorService_ListIncidents_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/user.proto",
+	Metadata: "user.proto",
 }

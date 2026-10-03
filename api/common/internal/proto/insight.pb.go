@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.20.3
-// source: proto/insight.proto
+// source: insight.proto
 
 package proto
 
@@ -30,7 +30,7 @@ type GetMonitorInsightRequest struct {
 
 func (x *GetMonitorInsightRequest) Reset() {
 	*x = GetMonitorInsightRequest{}
-	mi := &file_proto_insight_proto_msgTypes[0]
+	mi := &file_insight_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *GetMonitorInsightRequest) String() string {
 func (*GetMonitorInsightRequest) ProtoMessage() {}
 
 func (x *GetMonitorInsightRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_insight_proto_msgTypes[0]
+	mi := &file_insight_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *GetMonitorInsightRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMonitorInsightRequest.ProtoReflect.Descriptor instead.
 func (*GetMonitorInsightRequest) Descriptor() ([]byte, []int) {
-	return file_proto_insight_proto_rawDescGZIP(), []int{0}
+	return file_insight_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetMonitorInsightRequest) GetMonitorId() string {
@@ -82,7 +82,7 @@ type MonitorInsight struct {
 
 func (x *MonitorInsight) Reset() {
 	*x = MonitorInsight{}
-	mi := &file_proto_insight_proto_msgTypes[1]
+	mi := &file_insight_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *MonitorInsight) String() string {
 func (*MonitorInsight) ProtoMessage() {}
 
 func (x *MonitorInsight) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_insight_proto_msgTypes[1]
+	mi := &file_insight_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *MonitorInsight) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorInsight.ProtoReflect.Descriptor instead.
 func (*MonitorInsight) Descriptor() ([]byte, []int) {
-	return file_proto_insight_proto_rawDescGZIP(), []int{1}
+	return file_insight_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *MonitorInsight) GetMonitorId() string {
@@ -182,7 +182,7 @@ type GetMonitorInsightResponse struct {
 
 func (x *GetMonitorInsightResponse) Reset() {
 	*x = GetMonitorInsightResponse{}
-	mi := &file_proto_insight_proto_msgTypes[2]
+	mi := &file_insight_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +194,7 @@ func (x *GetMonitorInsightResponse) String() string {
 func (*GetMonitorInsightResponse) ProtoMessage() {}
 
 func (x *GetMonitorInsightResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_insight_proto_msgTypes[2]
+	mi := &file_insight_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +207,7 @@ func (x *GetMonitorInsightResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMonitorInsightResponse.ProtoReflect.Descriptor instead.
 func (*GetMonitorInsightResponse) Descriptor() ([]byte, []int) {
-	return file_proto_insight_proto_rawDescGZIP(), []int{2}
+	return file_insight_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetMonitorInsightResponse) GetInsight() *MonitorInsight {
@@ -217,11 +217,11 @@ func (x *GetMonitorInsightResponse) GetInsight() *MonitorInsight {
 	return nil
 }
 
-var File_proto_insight_proto protoreflect.FileDescriptor
+var File_insight_proto protoreflect.FileDescriptor
 
-const file_proto_insight_proto_rawDesc = "" +
+const file_insight_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/insight.proto\x12\x05proto\"9\n" +
+	"\rinsight.proto\x12\x05proto\"9\n" +
 	"\x18GetMonitorInsightRequest\x12\x1d\n" +
 	"\n" +
 	"monitor_id\x18\x01 \x01(\tR\tmonitorId\"\xcb\x02\n" +
@@ -240,27 +240,27 @@ const file_proto_insight_proto_rawDesc = "" +
 	"\x19GetMonitorInsightResponse\x12/\n" +
 	"\ainsight\x18\x01 \x01(\v2\x15.proto.MonitorInsightR\ainsight2h\n" +
 	"\x0eInsightService\x12V\n" +
-	"\x11GetMonitorInsight\x12\x1f.proto.GetMonitorInsightRequest\x1a .proto.GetMonitorInsightResponseB&Z$github.com/CuesoftCloud/upstat/protob\x06proto3"
+	"\x11GetMonitorInsight\x12\x1f.proto.GetMonitorInsightRequest\x1a .proto.GetMonitorInsightResponseB8Z6github.com/cuesoftinc/upstat/api/common/internal/protob\x06proto3"
 
 var (
-	file_proto_insight_proto_rawDescOnce sync.Once
-	file_proto_insight_proto_rawDescData []byte
+	file_insight_proto_rawDescOnce sync.Once
+	file_insight_proto_rawDescData []byte
 )
 
-func file_proto_insight_proto_rawDescGZIP() []byte {
-	file_proto_insight_proto_rawDescOnce.Do(func() {
-		file_proto_insight_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_insight_proto_rawDesc), len(file_proto_insight_proto_rawDesc)))
+func file_insight_proto_rawDescGZIP() []byte {
+	file_insight_proto_rawDescOnce.Do(func() {
+		file_insight_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_insight_proto_rawDesc), len(file_insight_proto_rawDesc)))
 	})
-	return file_proto_insight_proto_rawDescData
+	return file_insight_proto_rawDescData
 }
 
-var file_proto_insight_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_proto_insight_proto_goTypes = []any{
+var file_insight_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_insight_proto_goTypes = []any{
 	(*GetMonitorInsightRequest)(nil),  // 0: proto.GetMonitorInsightRequest
 	(*MonitorInsight)(nil),            // 1: proto.MonitorInsight
 	(*GetMonitorInsightResponse)(nil), // 2: proto.GetMonitorInsightResponse
 }
-var file_proto_insight_proto_depIdxs = []int32{
+var file_insight_proto_depIdxs = []int32{
 	1, // 0: proto.GetMonitorInsightResponse.insight:type_name -> proto.MonitorInsight
 	0, // 1: proto.InsightService.GetMonitorInsight:input_type -> proto.GetMonitorInsightRequest
 	2, // 2: proto.InsightService.GetMonitorInsight:output_type -> proto.GetMonitorInsightResponse
@@ -271,26 +271,26 @@ var file_proto_insight_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_proto_insight_proto_init() }
-func file_proto_insight_proto_init() {
-	if File_proto_insight_proto != nil {
+func init() { file_insight_proto_init() }
+func file_insight_proto_init() {
+	if File_insight_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_insight_proto_rawDesc), len(file_proto_insight_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_insight_proto_rawDesc), len(file_insight_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_insight_proto_goTypes,
-		DependencyIndexes: file_proto_insight_proto_depIdxs,
-		MessageInfos:      file_proto_insight_proto_msgTypes,
+		GoTypes:           file_insight_proto_goTypes,
+		DependencyIndexes: file_insight_proto_depIdxs,
+		MessageInfos:      file_insight_proto_msgTypes,
 	}.Build()
-	File_proto_insight_proto = out.File
-	file_proto_insight_proto_goTypes = nil
-	file_proto_insight_proto_depIdxs = nil
+	File_insight_proto = out.File
+	file_insight_proto_goTypes = nil
+	file_insight_proto_depIdxs = nil
 }

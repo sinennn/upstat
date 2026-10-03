@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Series } from "@/models";
+import type { Series } from "@/models/chart";
 import { ColorVisionProvider } from "@/design/ColorVisionProvider";
 import { TimeseriesPanel } from "./TimeseriesPanel";
 

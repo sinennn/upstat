@@ -1,16 +1,14 @@
 "use client";
 
 /**
- * App-shell controller — TopBar chrome state: org + switcher (the second,
- * empty org walks onboarding, web-implementation.md §6), the alert bell
- * (MI-14), and the persistent IncidentBanner while a sev1/2 is open.
+ * App-shell controller — the signed-in user (and the redirect to /signin
+ * without one), sign-out, and the active-incident banner.
  */
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getAuthProvider } from "@/auth";
-import type { Incident } from "@/models";
-import { alertsRepo, incidentsRepo, orgsRepo } from "@/models/repositories";
+import { getAuthProvider, type AuthUser } from "@/auth";
+import { incidentsRepo } from "@/models/repositories";
 import { useRequest } from "./use-request";
 
 export function ageLabel(iso: string, now = Date.now()): string {
@@ -21,56 +19,68 @@ export function ageLabel(iso: string, now = Date.now()): string {
   return `${Math.floor(h / 24)}d`;
 }
 
+/** Recent → `25m ago`; older than a day → `2 Oct, 14:05 UTC`. */
+export function whenLabel(iso: string, now = Date.now()): string {
+  const ms = Date.parse(iso);
+  if (Number.isNaN(ms)) return "—";
+  if (now - ms < 24 * 3_600_000) return `${ageLabel(iso, now)} ago`;
+  return new Date(ms).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
+}
+
+/** `2700` → `45m`, `5400` → `1h 30m`. */
+export function durationLabel(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h < 24) return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh === 0 ? `${d}d` : `${d}d ${rh}h`;
+}
+
 /**
- * Signed-in user's display name for the rail-foot avatar (NavRail master
- * foot construction). Resolved post-mount — the session lives in browser
- * storage, so SSR/hydration must render without it (NavRail pattern).
+ * The session lives in browser storage, so it is read post-mount (SSR and
+ * hydration render without it). `undefined` = not read yet.
  */
-export function useCurrentUserName(): string | null {
-  const [name, setName] = useState<string | null>(null);
-  // Deferred a tick (use-request pattern): setState stays out of the
-  // synchronous effect body.
+export function useCurrentUser(): AuthUser | null | undefined {
+  const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
   useEffect(() => {
     const t = window.setTimeout(() => {
-      setName(getAuthProvider().currentUser()?.name ?? null);
+      setUser(getAuthProvider().currentUser());
     }, 0);
     return () => window.clearTimeout(t);
   }, []);
-  return name;
+  return user;
 }
 
 export function useShellController() {
   const router = useRouter();
-  const org = useRequest(() => orgsRepo.current(), []);
-  const orgs = useRequest(() => orgsRepo.list(), []);
-  const feed = useRequest(() => alertsRepo.feed(), []);
-  const incidents = useRequest(() => incidentsRepo.list(), []);
+  const user = useCurrentUser();
 
-  const switchOrg = useCallback(async (id: string) => {
-    await orgsRepo.activate(id);
-    // full reload — every controller on screen re-seeds from the new org
-    window.location.assign("/dashboard");
-  }, []);
+  // every /dashboard RPC needs the session — without one, sign in first
+  useEffect(() => {
+    if (user === null) router.replace("/signin");
+  }, [user, router]);
 
-  const newOrg = useCallback(() => {
-    router.push("/dashboard/onboarding");
+  const incidents = useRequest(
+    () => (user ? incidentsRepo.list() : Promise.resolve([])),
+    [user?.id ?? null],
+  );
+  const active = (incidents.data ?? []).filter((i) => i.status === "active");
+
+  const signOut = useCallback(async () => {
+    await getAuthProvider().signOut();
+    router.push("/signin");
   }, [router]);
 
-  const unread = (feed.data ?? []).filter((e) => e.unread).length;
-
-  // MI-14: persistent banner while any sev1/2 incident is open.
-  const bannerIncident: Incident | null =
-    (incidents.data ?? []).find((i) => i.status !== "resolved" && i.sev <= 2) ??
-    null;
-
-  return {
-    org,
-    orgs,
-    feed,
-    incidents,
-    unread,
-    bannerIncident,
-    switchOrg,
-    newOrg,
-  };
+  return { user, activeIncidents: active, signOut };
 }

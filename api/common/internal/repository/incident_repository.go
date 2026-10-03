@@ -15,11 +15,15 @@ import (
 type IncidentRepository interface {
 	CreateIncident(incident *model.Incident) (model.Incident, error)
 	GetActiveIncidentForMonitor(monitorID primitive.ObjectID) (*model.Incident, error)
-	ResolveActiveIncidents(monitorID primitive.ObjectID) error
+	ResolveActiveIncidents(monitorID primitive.ObjectID) (*model.Incident, error)
 	ListActiveIncidents() ([]*model.Incident, error)
 	ListActiveIncidentsByMonitors(monitorIDs []string) ([]*model.Incident, error)
 	ListResolvedIncidentsByMonitors(monitorIDs []string, limit int64) ([]*model.Incident, error)
 	ListIncidentsByMonitor(monitorID string, limit int64) ([]*model.Incident, error)
+	// ListIncidentsByMonitorIDs returns every incident (active or resolved)
+	// for the given monitors, newest-started first — the authenticated
+	// dashboard feed (owner-scoped by the caller supplying its own ids).
+	ListIncidentsByMonitorIDs(monitorIDs []string, limit int64) ([]*model.Incident, error)
 }
 
 type incidentRepository struct {
@@ -138,6 +142,40 @@ func (db *incidentRepository) listIncidentsByMonitors(monitorIDs []string, incid
 	return incidents, err
 }
 
+func (db *incidentRepository) ListIncidentsByMonitorIDs(monitorIDs []string, limit int64) ([]*model.Incident, error) {
+	collection := incidentCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if len(monitorIDs) == 0 {
+		return []*model.Incident{}, nil
+	}
+
+	if limit <= 0 {
+		limit = 100
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	filter := bson.M{"monitorId": bson.M{"$in": monitorIDs}}
+
+	opts := options.Find().
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "startedAt", Value: -1}})
+
+	cursor, err := collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var incidents []*model.Incident
+	err = cursor.All(ctx, &incidents)
+	return incidents, err
+}
+
 func (db *incidentRepository) GetActiveIncidentForMonitor(monitorID primitive.ObjectID) (*model.Incident, error) {
 	collection := incidentCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -160,7 +198,7 @@ func (db *incidentRepository) GetActiveIncidentForMonitor(monitorID primitive.Ob
 	return &incident, nil
 }
 
-func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectID) error {
+func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectID) (*model.Incident, error) {
 	collection := incidentCollection(db.connection)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -174,11 +212,11 @@ func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectI
 	}).Decode(&incident)
 
 	if err == mongo.ErrNoDocuments {
-		return nil
+		return nil, nil
 	}
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	duration := int64(now.Sub(incident.StartedAt).Seconds())
@@ -191,7 +229,13 @@ func (db *incidentRepository) ResolveActiveIncidents(monitorID primitive.ObjectI
 			"updatedAt":       now,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	incident.Status = "resolved"
+	incident.ResolvedAt = &now
+	incident.DurationSeconds = duration
 
+	return &incident, nil
 }

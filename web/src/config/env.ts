@@ -1,20 +1,20 @@
-// Typed access to public (browser-exposed) environment variables.
-// NEXT_PUBLIC_* values are inlined at build time.
+/**
+ * Build-time public config (NEXT_PUBLIC_* are inlined at build time).
+ */
 export const env = {
-  /**
-   * Base path the repository layer talks to: the in-app mock server in
-   * TEST_MODE, otherwise `NEXT_PUBLIC_API_BASE`
-   * (api.upstat.cuesoft.io once the HTTP surfaces land).
-   */
-  apiBase: process.env.NEXT_PUBLIC_API_BASE || "/api/mock",
-  /** Opt-in product analytics (models/analytics.ts; never on in TEST_MODE). */
-  analytics: process.env.NEXT_PUBLIC_ANALYTICS === "1",
-  /** gRPC-Web endpoint (Envoy) for the X-8 control-plane client. */
+  /** gRPC-Web endpoint (Envoy) in front of api/common. */
   envoyUrl: process.env.NEXT_PUBLIC_ENVOY_URL || "http://localhost:8082",
   /**
-   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
-   * - GoogleAuthButton signs straight in (no Firebase), and
-   * - the repository client targets the in-app mock server (/api/mock).
+   * TEST_MODE (`NEXT_PUBLIC_TEST_MODE=1`): the gRPC transport talks to the
+   * in-memory fake backend (models/repositories/grpc/fake-backend.ts) instead
+   * of Envoy, and the Google button signs in without a Google popup. Used by
+   * unit/e2e runs and for UI work without a backend.
    */
   testMode: process.env.NEXT_PUBLIC_TEST_MODE === "1",
+  /**
+   * Google OAuth web client id for the sign-in popup (auth/gateway.ts).
+   * Must equal the backend's GOOGLE_CLIENT_ID — the gateway checks the ID
+   * token's audience against it. Unused in TEST_MODE.
+   */
+  googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
 } as const;

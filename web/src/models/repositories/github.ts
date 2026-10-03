@@ -1,4 +1,4 @@
-import { TEST_MODE } from "./client";
+import { env } from "@/config/env";
 
 /**
  * GitHub star count — pages.md A13 / MarketingNav as-built note: the badge
@@ -6,17 +6,15 @@ import { TEST_MODE } from "./client";
  * runtime only. Third-party fetch, so it lives in the models layer (the
  * only layer that talks to the network).
  *
- * TEST_MODE: the API-client seam points all model-layer network at the
- * in-app mock server — a third-party origin has no mock surface, so the
- * repo resolves `null` without touching the network (badge stays neutral;
- * Playwright/CI stay hermetic).
+ * TEST_MODE: resolves `null` without touching the network (badge stays
+ * neutral; Playwright/CI stay hermetic).
  */
 /** Session cache — remounts reuse the count instead of refetching. */
 const starCache = new Map<string, number>();
 
 export const githubRepo = {
   async stars(repo = "cuesoftinc/upstat"): Promise<number | null> {
-    if (TEST_MODE) return null;
+    if (env.testMode) return null;
     const cached = starCache.get(repo);
     if (cached !== undefined) return cached;
     try {

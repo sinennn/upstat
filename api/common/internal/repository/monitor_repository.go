@@ -20,6 +20,8 @@ type MonitorRepository interface {
 	UpdateMonitor(id string, ownerID string, monitor model.Monitor) (*model.Monitor, error)
 	DeleteMonitor(id string, ownerID string) (*mongo.DeleteResult, error)
 	UpdateAfterCheck(monitorID primitive.ObjectID, status string, statusCode int, responseTimeMs int64, consecutiveFailures int) error
+	ClaimMonitor(monitorID primitive.ObjectID, workerID string, leaseDuration time.Duration) (bool, error)
+	SetMetricAlertState(monitorID primitive.ObjectID, errorRateActive bool, latencyActive bool) error
 }
 
 type monitorRepository struct {
@@ -91,10 +93,15 @@ func (db *monitorRepository) UpdateMonitor(id string, ownerId string, monitor mo
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":      monitor.Name,
-			"target":    monitor.Target,
-			"type":      monitor.Type,
-			"updatedAt": time.Now(),
+			"name":             monitor.Name,
+			"target":           monitor.Target,
+			"type":             monitor.Type,
+			"active":           monitor.Active,
+			"muted":            monitor.Muted,
+			"intervalSeconds":  monitor.IntervalSeconds,
+			"timeoutSeconds":   monitor.TimeoutSeconds,
+			"failureThreshold": monitor.FailureThreshold,
+			"updatedAt":        time.Now(),
 		},
 	}
 
@@ -200,9 +207,64 @@ func (db *monitorRepository) UpdateAfterCheck(
 			"lastResponseTimeMs":  responseTimeMs,
 			"consecutiveFailures": consecutiveFailures,
 			"updatedAt":           now,
+			// release the claim lease immediately so any worker can pick up
+			// the next due check, instead of waiting out the full lease TTL.
+			"lockedBy":    nil,
+			"lockedUntil": nil,
 		},
 	}
 
 	_, err := collection.UpdateByID(ctx, monitorID, update)
 	return err
+}
+
+func (db *monitorRepository) SetMetricAlertState(monitorID primitive.ObjectID, errorRateActive bool, latencyActive bool) error {
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.UpdateByID(ctx, monitorID, bson.M{
+		"$set": bson.M{
+			"errorRateAlertActive": errorRateActive,
+			"latencyAlertActive":   latencyActive,
+			"updatedAt":            time.Now(),
+		},
+	})
+	return err
+}
+
+// ClaimMonitor atomically acquires (or renews) a short-lived lease on a
+// monitor so exactly one worker replica processes it at a time. Workers
+// hold no shared state among themselves — any replica can claim any
+// monitor — so the fleet can scale up/down or restart freely, and a
+// crashed worker's claim simply expires and becomes claimable again.
+func (db *monitorRepository) ClaimMonitor(monitorID primitive.ObjectID, workerID string, leaseDuration time.Duration) (bool, error) {
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	now := time.Now()
+
+	filter := bson.M{
+		"_id": monitorID,
+		"$or": bson.A{
+			bson.M{"lockedUntil": bson.M{"$exists": false}},
+			bson.M{"lockedUntil": nil},
+			bson.M{"lockedUntil": bson.M{"$lt": now}},
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"lockedBy":    workerID,
+			"lockedUntil": now.Add(leaseDuration),
+		},
+	}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return false, err
+	}
+
+	return result.ModifiedCount == 1, nil
 }

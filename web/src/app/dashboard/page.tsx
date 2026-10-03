@@ -1,169 +1,114 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { AlertFeedRow } from "@/components/ui/AlertFeedRow";
-import { DashboardListRow } from "@/components/ui/DashboardListRow";
-import { QueryValue } from "@/components/ui/QueryValue";
-import { SLOCard } from "@/components/ui/SLOCard";
+import Link from "next/link";
+import { MonitorRow } from "@/components/ui/MonitorRow";
 import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  monitorPillStatus,
+  monitorStatusLabel,
+  useMonitorsController,
+} from "@/controllers/monitors";
 import { ageLabel } from "@/controllers/shell";
-import { useOrgHomeController } from "@/controllers/org-home";
+import type { Monitor, MonitorStatus } from "@/models";
+
+const COUNT_ORDER: { status: MonitorStatus; label: string }[] = [
+  { status: "down", label: "down" },
+  { status: "nodata", label: "failing" },
+  { status: "up", label: "up" },
+  { status: "pending", label: "pending" },
+  { status: "paused", label: "paused" },
+];
+
+function lastCheckLabel(m: Monitor): string {
+  if (!m.last_checked_at) return "—";
+  const age = `${ageLabel(m.last_checked_at)} ago`;
+  // status 0 = the request never got a response (timeout, DNS, refused)
+  return m.last_status_code === 0
+    ? `${age} · no response`
+    : `${age} · ${m.last_response_time_ms} ms`;
+}
 
 /**
- * B1 Home — org health at a glance (Figma 125:13): stat tiles, watched
- * dashboards, triggered monitors, SLO burn. The persistent sev1/2 banner
- * renders in the shell (MI-14).
+ * /dashboard — the caller's monitors (ListMonitors): status, target, last
+ * check, cadence and the mute switch. Down and failing monitors sort first.
  */
-export default function DashboardHomePage() {
-  const router = useRouter();
-  const { tiles, dashboards, watched, feed, slos } = useOrgHomeController();
+export default function MonitorsPage() {
+  const { data, loading, error, update } = useMonitorsController();
+  const monitors = [...(data ?? [])].sort(
+    (a, b) =>
+      COUNT_ORDER.findIndex((o) => o.status === a.status) -
+        COUNT_ORDER.findIndex((o) => o.status === b.status) ||
+      a.name.localeCompare(b.name),
+  );
+
+  const counts = COUNT_ORDER.map((o) => ({
+    ...o,
+    n: monitors.filter((m) => m.status === o.status).length,
+  })).filter((c) => c.n > 0);
 
   return (
-    <div data-testid="dashboard-home" className="flex flex-col gap-8 px-6 py-5">
-      <h1 className="text-[20px] font-semibold">Home — org health</h1>
-
-      {/* stat tiles */}
-      <section
-        aria-label="Org health stats"
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        {tiles.loading || !tiles.data
-          ? Array.from({ length: 4 }, (_, i) => (
-              // frame reserves the hydrated QueryValue footprint (CLS)
-              <Skeleton key={i} kind="frame" className="h-(--widget-h-value)" />
-            ))
-          : tiles.data.map((tile) => (
-              <QueryValue
-                key={tile.label}
-                label={tile.label}
-                value={tile.value}
-                deltaPct={tile.deltaPct}
-                threshold={tile.threshold}
-                sparkline={tile.sparkline}
-                className="rounded-(--radius) border border-border bg-bg-elev p-4"
-              />
-            ))}
-      </section>
-
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        {/* watched dashboards */}
-        <section aria-labelledby="watched-heading" className="min-w-0">
-          <h2 id="watched-heading" className="mb-3 text-[16px] font-semibold">
-            Watched dashboards
-          </h2>
-          {dashboards.loading ? (
-            // one frame per seeded row height — the list swaps in place
-            <div className="flex flex-col">
-              {Array.from({ length: 3 }, (_, i) => (
-                <Skeleton
-                  key={i}
-                  kind="frame"
-                  className="h-(--widget-h-row) rounded-none border-x-0 border-t-0"
-                />
-              ))}
-            </div>
-          ) : watched.length === 0 ? (
-            <p className="text-[13px] leading-[1.45] text-text-2">
-              No dashboards yet —{" "}
-              <button
-                type="button"
-                onClick={() => router.push("/dashboard/dashboards")}
-                className="text-brand-text hover:underline"
-              >
-                create your first dashboard
-              </button>
-              .
+    <div data-testid="monitors" className="flex flex-col gap-5 px-6 py-5">
+      <header className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h1 className="text-[20px] font-semibold">Monitors</h1>
+          {counts.length > 0 && (
+            <p className="text-[13px] text-text-2" data-testid="monitor-counts">
+              {counts.map((c) => `${c.n} ${c.label}`).join(" · ")}
             </p>
-          ) : (
-            <ul aria-label="Dashboards">
-              {watched.slice(0, 5).map((d) => (
-                <li key={d.id}>
-                  <DashboardListRow
-                    name={d.name}
-                    updated={`updated ${ageLabel(d.updated_at)} ago`}
-                    favorite={d.favorite}
-                    shared={d.shared}
-                    // "N widgets" meta per the B1 frame rows (125:13)
-                    meta={`${d.widgets.length} widget${d.widgets.length === 1 ? "" : "s"}`}
-                    onClick={() => router.push(`/dashboard/dashboards/${d.id}`)}
-                  />
-                </li>
-              ))}
-            </ul>
           )}
-        </section>
+        </div>
+        <Link
+          href="/dashboard/monitors/new"
+          className="rounded-(--radius) bg-brand px-3 py-1.5 text-[13px] font-medium text-on-brand transition-colors duration-[var(--duration-fast)] hover:bg-brand-deep"
+        >
+          New monitor
+        </Link>
+      </header>
 
-        {/* triggered monitors */}
-        <section aria-labelledby="triggered-heading" className="min-w-0">
-          <h2 id="triggered-heading" className="mb-3 text-[16px] font-semibold">
-            Triggered monitors
-          </h2>
-          {feed.loading ? (
-            <div className="flex flex-col">
-              {Array.from({ length: 6 }, (_, i) => (
-                <Skeleton
-                  key={i}
-                  kind="frame"
-                  className="h-(--widget-h-feed-row) rounded-none border-x-0 border-t-0"
-                />
-              ))}
-            </div>
-          ) : (feed.data ?? []).length === 0 ? (
-            <p className="text-[13px] leading-[1.45] text-text-2">
-              Quiet — nothing has triggered.
-            </p>
-          ) : (
-            <ul>
-              {(feed.data ?? []).map((event) => (
-                <li key={event.id}>
-                  <AlertFeedRow
-                    event={event}
-                    onClick={() => router.push("/dashboard/monitors")}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {/* SLO burn */}
-      <section aria-labelledby="slo-heading">
-        <h2 id="slo-heading" className="mb-3 text-[16px] font-semibold">
-          SLO burn
-        </h2>
-        {slos.loading ? (
-          <div className="grid gap-4 md:grid-cols-3">
-            {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton
-                key={i}
-                kind="frame"
-                className="h-(--widget-h-slo) max-w-64"
-              />
-            ))}
-          </div>
-        ) : (slos.data ?? []).length === 0 ? (
-          <p className="text-[13px] leading-[1.45] text-text-2">
-            No SLOs defined —{" "}
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/slos")}
-              className="text-brand-text hover:underline"
-            >
-              define your first SLO
-            </button>
-            .
+      {loading && !data ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} kind="line" />
+          ))}
+        </div>
+      ) : error ? (
+        <p role="alert" className="text-[13px] text-crit-text">
+          Couldn&apos;t load monitors: {error.message}
+        </p>
+      ) : monitors.length === 0 ? (
+        <section
+          aria-label="No monitors"
+          className="flex flex-col items-start gap-3 rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] leading-[1.45] text-text-2"
+        >
+          <p>
+            No monitors yet. A monitor sends an HTTP GET to a URL on a fixed
+            interval; enough consecutive failures open an incident.
           </p>
-        ) : (
-          <ul className="grid gap-4 md:grid-cols-3">
-            {(slos.data ?? []).map((slo) => (
-              <li key={slo.id} className="min-w-0">
-                <SLOCard slo={slo} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          <Link
+            href="/dashboard/monitors/new"
+            className="font-medium text-brand-text hover:underline"
+          >
+            Create your first monitor →
+          </Link>
+        </section>
+      ) : (
+        <section aria-label="Monitor list" className="flex flex-col">
+          {monitors.map((m) => (
+            <MonitorRow
+              key={m.id}
+              status={monitorPillStatus(m.status)}
+              statusLabel={monitorStatusLabel(m.status)}
+              name={m.name}
+              target={m.target}
+              lastCheck={lastCheckLabel(m)}
+              cadence={`every ${m.interval_seconds}s`}
+              muted={m.muted}
+              onMutedChange={(muted) => void update(m.id, { muted })}
+              href={`/dashboard/monitors/${m.id}`}
+            />
+          ))}
+        </section>
+      )}
     </div>
   );
 }

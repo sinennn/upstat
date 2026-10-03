@@ -38,6 +38,12 @@ func main() {
 	worker := service.NewMonitorWorker(db)
 	go worker.Start(ctx)
 
+	notifier := service.NewNotificationWorker(db)
+	go notifier.Start(ctx)
+
+	rollup := service.NewRollupWorker(db)
+	go rollup.Start(ctx)
+
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(util.AuthenticateInterceptor),
 	)

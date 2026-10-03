@@ -5,8 +5,9 @@
  * how-it-works (A12). Render-only; data arrives from the home controller.
  */
 
-import type { ApiKey, Series } from "@/models";
-import { APIKeyRow } from "@/components/ui/APIKeyRow";
+import type { Series } from "@/models/chart";
+import type { ApiKey } from "./demo-types";
+import { APIKeyRow } from "./APIKeyRow";
 import { Button } from "@/components/ui/Button";
 import { CodeSnippet } from "@/components/ui/CodeSnippet";
 import { DeferredPanel } from "@/components/ui/DeferredPanel";

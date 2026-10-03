@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Series } from "@/models";
-import { Heatmap } from "./Heatmap";
-import { LogHistogram } from "./LogHistogram";
+import type { Series } from "@/models/chart";
 import { TimeseriesPanel } from "./TimeseriesPanel";
 import { UptimeCard } from "./UptimeCard";
 
@@ -67,43 +65,6 @@ describe("chart data-table toggle (§5)", () => {
     expect(
       screen.queryByRole("button", { name: "View as table" }),
     ).not.toBeInTheDocument();
-  });
-
-  it("Heatmap: table renders one row per time bucket, one column per value bucket", async () => {
-    render(
-      <Heatmap
-        columns={["10:00", "10:05"]}
-        rows={["≤50ms", "≤200ms"]}
-        values={[
-          [1, 2],
-          [3, 4],
-        ]}
-      />,
-    );
-    await userEvent.click(toggle());
-    expect(
-      screen.getByRole("columnheader", { name: "≤200ms" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "10:05" })).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "4" })).toBeInTheDocument();
-  });
-
-  it("LogHistogram: table carries per-level counts per bucket", async () => {
-    render(
-      <LogHistogram
-        buckets={[
-          {
-            ts: "2026-07-20T10:00:00Z",
-            counts: { INFO: 5, DEBUG: 1, TRACE: 0, WARN: 2, ERROR: 1 },
-          },
-        ]}
-      />,
-    );
-    await userEvent.click(toggle());
-    expect(
-      screen.getByRole("columnheader", { name: "ERROR" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "5" })).toBeInTheDocument();
   });
 
   it("UptimeCard: table lists days newest-first with uptime and downtime", async () => {

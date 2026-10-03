@@ -1,108 +1,114 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AvatarStack } from "@/components/ui/Avatar";
-import { IncidentComposer } from "@/components/ui/IncidentComposer";
-import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
-import { SevChip, type Sev } from "@/components/ui/SevChip";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Toast } from "@/components/ui/Toast";
 import { useIncidentController } from "@/controllers/incidents";
-import { PostmortemSection } from "./postmortem-section";
+import { durationLabel, whenLabel } from "@/controllers/shell";
 
-/**
- * B9 incident timeline (Figma 131:2901) — MI-10 composer with slash
- * commands (`/status resolved`, `/sev 2`), optimistic prepend + rollback,
- * phase-stamped history. Status changes reflect on /status/{slug}.
- */
-export default function IncidentDetailPage() {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 border-b border-border py-2.5 text-[13px]">
+      <dt className="text-text-2">{label}</dt>
+      <dd className="min-w-0 text-text">{children}</dd>
+    </div>
+  );
+}
+
+/** /dashboard/incidents/[id] — every field the backend records. */
+export default function IncidentPage() {
   const { id } = useParams<{ id: string }>();
-  const {
-    incident,
-    entries,
-    postUpdate,
-    posting,
-    postError,
-    postmortem,
-    savePostmortem,
-    savingPostmortem,
-    postmortemError,
-  } = useIncidentController(id);
+  const { data: incident, loading } = useIncidentController(id);
 
-  if (incident.loading || !incident.data) {
+  if (loading && !incident) {
     return (
       <div className="flex flex-col gap-4 px-6 py-5">
-        <Skeleton kind="line" className="w-96" />
-        <Skeleton kind="panel-axis" style={{ height: 200 }} />
+        <Skeleton kind="line" className="w-64" />
+        <Skeleton kind="panel-axis" style={{ height: 160 }} />
       </div>
     );
   }
 
-  const inc = incident.data;
+  if (!incident) {
+    return (
+      <div className="flex flex-col gap-2 px-6 py-5">
+        <h1 className="text-[20px] font-semibold">Incident not found</h1>
+        <Link
+          href="/dashboard/incidents"
+          className="text-[13px] text-brand-text hover:underline"
+        >
+          Back to incidents
+        </Link>
+      </div>
+    );
+  }
+
+  const active = incident.status === "active";
 
   return (
     <div
+      className="flex max-w-[760px] flex-col gap-5 px-6 py-5"
       data-testid="incident-detail"
-      className="flex max-w-[960px] flex-col gap-5 px-6 py-5"
     >
-      <header className="flex items-center gap-3">
-        <SevChip sev={Math.min(inc.sev, 3) as Sev} />
-        <h1 className="min-w-0 flex-1 truncate text-[20px] font-semibold">
-          {inc.key} — {inc.title}
-        </h1>
-        <span className="flex items-center gap-2 text-[12px] text-text-2">
-          responders
-          <AvatarStack names={[inc.roles.commander, ...inc.roles.responders]} />
-        </span>
+      <header className="flex flex-col gap-2">
+        <nav aria-label="Breadcrumb" className="text-[12px] text-text-2">
+          <Link href="/dashboard/incidents" className="hover:text-text">
+            Incidents /
+          </Link>
+        </nav>
+        <div className="flex items-center gap-3">
+          <span
+            className={
+              active
+                ? "inline-flex h-5 items-center rounded-(--radius) bg-crit px-1.5 text-[11px] font-semibold text-on-brand"
+                : "inline-flex h-5 items-center rounded-(--radius) bg-ok/15 px-1.5 text-[11px] font-semibold text-ok-text"
+            }
+          >
+            {active ? "OPEN" : "RESOLVED"}
+          </span>
+          <h1 className="text-[24px] font-semibold">{incident.title}</h1>
+        </div>
+        <p className="text-[13px] text-text-2">
+          {active
+            ? "Resolves automatically on the monitor's next successful check."
+            : `Resolved after ${durationLabel(incident.duration_seconds ?? 0)}.`}
+        </p>
       </header>
 
-      <IncidentComposer
-        posting={posting}
-        onSubmit={(update) =>
-          void postUpdate({
-            body: update.body,
-            phase: update.phase,
-            sev: update.sev,
-            author: inc.roles.commander,
-          }).catch(() => undefined)
-        }
-      />
-
-      {postError && (
-        <Toast kind="error" message={`Update failed — ${postError}`} />
-      )}
-
-      <section aria-label="Timeline" className="flex flex-col">
-        {entries.length === 0 ? (
-          <p className="text-[13px] leading-[1.45] text-text-2">
-            No updates yet.
-          </p>
-        ) : (
-          <IncidentHistoryEntry
-            updates={entries.map((e) => ({
-              ts: e.ts,
-              phase: e.phase,
-              body: e.body,
-              author: e.author,
-            }))}
-            variant="timeline"
-            className="border-0"
-          />
-        )}
-      </section>
-
-      {/* B9: postmortem template on resolve — renders only once resolved
-          (or when a composed doc already exists) */}
-      {!postmortem.loading && (
-        <PostmortemSection
-          incident={inc}
-          postmortem={postmortem.data}
-          entries={entries}
-          onSave={savePostmortem}
-          saving={savingPostmortem}
-          error={postmortemError}
-        />
-      )}
+      <dl>
+        <Row label="Monitor">
+          {incident.monitor_name ? (
+            <Link
+              href={`/dashboard/monitors/${incident.monitor_id}`}
+              className="text-brand-text hover:underline"
+            >
+              {incident.monitor_name}
+            </Link>
+          ) : (
+            <span className="text-text-2">Deleted monitor</span>
+          )}
+        </Row>
+        <Row label="Failure reason">
+          <span className="font-data break-words">
+            {incident.failure_reason || "—"}
+          </span>
+        </Row>
+        <Row label="Started">{whenLabel(incident.started_at)}</Row>
+        <Row label="Resolved">
+          {incident.resolved_at ? whenLabel(incident.resolved_at) : "—"}
+        </Row>
+        <Row label="Duration">
+          {incident.duration_seconds === null
+            ? "ongoing"
+            : durationLabel(incident.duration_seconds)}
+        </Row>
+      </dl>
     </div>
   );
 }

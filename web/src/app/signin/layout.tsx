@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 // "Sign in — {Product}"; the page itself is a client component).
 export const metadata: Metadata = {
   title: "Sign in — Upstat",
-  description: "Sign in to Upstat with Google",
+  description: "Sign in to Upstat with Google or email",
 };
 
 export default function SignInLayout({

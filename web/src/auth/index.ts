@@ -1,20 +1,16 @@
+import { GatewayAuthProvider } from "./gateway";
 import type { AuthProvider } from "./provider";
-import { TestModeAuthProvider } from "./test-mode";
 
 export type { AuthProvider, AuthUser } from "./provider";
-export { TestModeAuthProvider } from "./test-mode";
 
 let provider: AuthProvider | null = null;
 
 /**
- * Active auth provider. TEST_MODE → TestModeAuthProvider. The real
- * FirebaseAuthProvider (Google-only per X-1) slots in here at
- * backend-integration time — callers never know the difference.
+ * The one auth provider. TEST_MODE needs no separate implementation: the
+ * transport swaps in the fake backend, and the Google button skips the
+ * Google popup (see GatewayAuthProvider).
  */
 export function getAuthProvider(): AuthProvider {
-  if (!provider) {
-    // Only TestModeAuthProvider exists in W0; the factory is the seam.
-    provider = new TestModeAuthProvider();
-  }
+  if (!provider) provider = new GatewayAuthProvider();
   return provider;
 }

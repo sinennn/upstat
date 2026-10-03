@@ -6,13 +6,14 @@
  */
 
 import Link from "next/link";
-import type { AlertRule, Series } from "@/models";
-import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
+import type { Series } from "@/models/chart";
+import type { AlertRule } from "./demo-types";
+import { AlertRuleCard } from "./AlertRuleCard";
 import { DeferredPanel } from "@/components/ui/DeferredPanel";
 import {
   IncidentHistoryEntry,
   type IncidentHistoryUpdate,
-} from "@/components/ui/IncidentHistoryEntry";
+} from "@/components/home/IncidentHistoryEntry";
 import { QueryValue } from "@/components/ui/QueryValue";
 import { StatusPageComponentRow } from "@/components/ui/StatusPageComponentRow";
 import { StatusPageHeader } from "@/components/ui/StatusPageHeader";

@@ -126,7 +126,6 @@ test("audited dashboards stay layout-stable on load (CLS < 0.1)", async ({
 }) => {
   test.setTimeout(90_000);
   await signIn(page);
-  await assertStable(page, "/dashboard", "dashboard-home");
-  await assertStable(page, "/dashboard/monitors", "monitors-page");
-  await assertStable(page, "/dashboard/metrics", "metrics-explorer");
+  await assertStable(page, "/dashboard", "monitors");
+  await assertStable(page, "/dashboard/incidents", "incidents");
 });

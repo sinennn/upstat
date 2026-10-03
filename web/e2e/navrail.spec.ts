@@ -10,7 +10,7 @@ async function signIn(page: Page) {
   await page.goto("/signin");
   await page.getByRole("button", { name: /continue with google/i }).click();
   await page.waitForURL("**/dashboard**");
-  await expect(page.getByTestId("dashboard-home")).toBeVisible();
+  await expect(page.getByTestId("monitors")).toBeVisible();
 }
 
 const rail = (page: Page) =>
@@ -26,10 +26,8 @@ test("defaults expanded at ≥1280px with labels and section groups", async ({
   await expect
     .poll(async () => Math.round((await rail(page).boundingBox())!.width))
     .toBe(240);
-  for (const group of ["Telemetry", "Respond", "Platform"]) {
-    await expect(rail(page).getByText(group)).toBeVisible();
-  }
-  await expect(rail(page).getByText("Dashboards")).toBeVisible();
+  await expect(rail(page).getByText("Account")).toBeVisible();
+  await expect(rail(page).getByText("Incidents")).toBeVisible();
 });
 
 test("defaults collapsed below 1280px", async ({ page }) => {
@@ -39,7 +37,7 @@ test("defaults collapsed below 1280px", async ({ page }) => {
   await expect
     .poll(async () => Math.round((await rail(page).boundingBox())!.width))
     .toBe(56);
-  await expect(rail(page).getByText("Telemetry")).toBeHidden();
+  await expect(rail(page).getByText("Account")).toBeHidden();
 });
 
 test("foot chevron toggles and the choice persists across reloads", async ({
@@ -97,10 +95,6 @@ test("dashboard chrome theme toggle flips + persists (theme-parity canon)", asyn
   ).toBe("light");
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  // the settings Appearance tab carries the same control as a labelled
-  // select (routed tabs, 2026-07-20)
-  await page.goto("/dashboard/settings/appearance");
-  await expect(page.getByRole("combobox", { name: "Theme" })).toBeVisible();
   // restore dark for the rest of the suite
   await page.getByRole("banner").getByTestId("theme-toggle").click();
   await expect(html).not.toHaveAttribute("data-theme", "light");
@@ -146,8 +140,8 @@ test("below md, expansion is an overlay drawer — content never squeezes ([Clar
 
   // selecting a pillar navigates AND closes the drawer
   await page.getByTestId("rail-toggle").click();
-  await drawer.getByRole("link", { name: "Logs", exact: true }).click();
-  await page.waitForURL("**/dashboard/logs");
+  await drawer.getByRole("link", { name: "Incidents", exact: true }).click();
+  await page.waitForURL("**/dashboard/incidents");
   await expect(drawer).toBeHidden();
 
   // the transient drawer never rewrites the persisted desktop choice
@@ -156,23 +150,22 @@ test("below md, expansion is an overlay drawer — content never squeezes ([Clar
   ).toBe("1");
 });
 
-test("navigation works at both rail widths (charts unaffected)", async ({
-  page,
-}) => {
+test("navigation works at both rail widths", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   // expanded: click by visible label row
   // pillar items are real links (a11y audit) — role + href locked here
-  const dashboards = rail(page).getByRole("link", {
-    name: "Dashboards",
+  const incidents = rail(page).getByRole("link", {
+    name: "Incidents",
     exact: true,
   });
-  await expect(dashboards).toHaveAttribute("href", "/dashboard/dashboards");
-  await dashboards.click();
-  await page.waitForURL("**/dashboard/dashboards");
+  await expect(incidents).toHaveAttribute("href", "/dashboard/incidents");
+  await incidents.click();
+  await page.waitForURL("**/dashboard/incidents");
+  await expect(page.getByTestId("incidents")).toBeVisible();
   // collapse and navigate by icon (aria-label)
   await page.getByTestId("rail-toggle").click();
-  await rail(page).getByRole("link", { name: "Metrics", exact: true }).click();
-  await page.waitForURL("**/dashboard/metrics");
-  await expect(page.getByTestId("timeseries-plot")).toBeVisible();
+  await rail(page).getByRole("link", { name: "Settings", exact: true }).click();
+  await page.waitForURL("**/dashboard/settings");
+  await expect(page.getByTestId("settings")).toBeVisible();
 });

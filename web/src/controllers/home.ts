@@ -11,18 +11,20 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type { AlertRule, Series, UptimeDay } from "@/models";
-import type { IncidentHistoryUpdate } from "@/components/ui/IncidentHistoryEntry";
-import { track, usePageView } from "./use-analytics";
+import type { UptimeDay } from "@/models";
+import type { Series } from "@/models/chart";
+import type { IncidentHistoryUpdate } from "@/components/home/IncidentHistoryEntry";
+import type { AlertRule } from "@/components/home/demo-types";
 import { githubRepo } from "@/models/repositories";
 import {
-  buildTimeseries,
+  HOUR,
+  MINUTE,
+  hashSeed,
+  heartbeatDays as buildHeartbeatDays,
+  latencySeries as buildLatencySeries,
+  mulberry32,
   type OutageWindow,
-  type ParsedQuery,
-} from "@/mocks/series";
-import { monitorHistory } from "@/mocks/uptime-data";
-import { HOUR, MINUTE, hashSeed, mulberry32 } from "@/mocks/util";
-import type { Monitor } from "@/models";
+} from "./home-demo";
 
 /* ------------------------------------------------------------------ */
 /* Demo dataset (deterministic, from the §8.3 synthetic generators)     */
@@ -60,27 +62,6 @@ export interface HomeDemoData {
   statusUpdatedAt: string;
 }
 
-function demoMonitor(id: string, name: string): Monitor {
-  return {
-    id,
-    name,
-    target: "https://api.cuesoft.io/health",
-    type: "api",
-    active: true,
-    status: "up",
-    muted: false,
-    interval_seconds: 60,
-    timeout_seconds: 10,
-    failure_threshold: 2,
-    consecutive_failures: 0,
-    last_checked_at: null,
-    last_response_time_ms: null,
-    last_status_code: null,
-    created_at: "2026-01-01T00:00:00Z",
-    updated_at: "2026-01-01T00:00:00Z",
-  };
-}
-
 function meanUptime(days: UptimeDay[]): number {
   const vals = days
     .map((d) => d.uptime_pct)
@@ -116,41 +97,15 @@ export function buildHomeDemoData(now: number): HomeDemoData {
   const outage: OutageWindow = {
     start: snapped - 126 * MINUTE,
     end: snapped - 114 * MINUTE,
-    services: ["api-common"],
   };
-  const parsed: ParsedQuery = {
-    metric: "trace.http.request.duration_ms",
-    filters: { service: "api-common" },
-    negations: {},
-    text: [],
-    agg: [{ fn: "p50" }, { fn: "p95" }, { fn: "p99" }],
-    groupBy: [],
-  };
-  const ts = buildTimeseries(
-    parsed,
+  const latencySeries = buildLatencySeries(
     snapped - 4 * HOUR,
     snapped,
-    outage,
     DEMO_STEP_MS,
-  );
-  const names = ["p50", "p95", "p99"];
-  const latencySeries = ts.series.map((s, i) => ({
-    ...s,
-    name: names[i] ?? s.name,
-  }));
-
-  // 90-day heartbeat with the INC-41 dent (mon_homepage path in the seed);
-  // the random sub-10-minute blips are cleared so the strip reads like the
-  // Figma hero — green with one honest dent (the ≥20m INC-41 outage stays)
-  const heartbeatDays = monitorHistory(
-    demoMonitor("mon_homepage", "api.cuesoft.io heartbeat"),
-    snapped,
     outage,
-  ).days.map((d) =>
-    d.uptime_pct !== null && d.down_minutes > 0 && d.down_minutes < 20
-      ? { ...d, uptime_pct: 100, down_minutes: 0 }
-      : d,
   );
+
+  const heartbeatDays = buildHeartbeatDays(snapped);
   const heartbeat: UptimeDemo = {
     name: "api.cuesoft.io heartbeat",
     days: heartbeatDays,
@@ -191,18 +146,10 @@ export function buildHomeDemoData(now: number): HomeDemoData {
     lcpSparkline: sparkline("home:lcp", 24, 2.4, 0.3),
     alertRule: {
       id: "rule_demo_home",
-      org_id: "org_upstat",
       name: "Error log spike",
       signal: "log",
-      query: { v: 1, filters: { op: "and", terms: [] } },
       query_string: 'logs("status:error service:web").rollup(count, 5m)',
       thresholds: { warn: null, crit: 50, window: "5m" },
-      notify: {
-        channel_ids: [],
-        cooldown_minutes: 0,
-        renotify_minutes: 30,
-        mute_windows: [],
-      },
       state: "alert",
       last_triggered_at: null,
     },
@@ -303,7 +250,7 @@ export function useGithubStars(): number | null {
 }
 
 /* ------------------------------------------------------------------ */
-/* Navigation + instrumentation (api.md §3.4 registry events)          */
+/* Navigation                                                          */
 /* ------------------------------------------------------------------ */
 
 export function useHomeController() {
@@ -319,34 +266,20 @@ export function useHomeController() {
     !navigating,
   );
 
-  // page_view — registered dogfood event, env-gated (no-op in TEST_MODE)
-  usePageView("/");
-
   const onSignIn = useCallback(() => {
     setNavigating(true);
     router.push("/signin");
   }, [router]);
 
   const onTryCloud = useCallback(() => {
-    track("try_cloud_click", { path: "/" });
     setNavigating(true);
     router.push("/signin");
   }, [router]);
 
   const onSelfHost = useCallback(() => {
-    track("self_host_click", { path: "/" });
     document
       .getElementById("self-host")
       ?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  // docs-link variant: tracks the CTA but lets the anchor navigate
-  const onSelfHostDocs = useCallback(() => {
-    track("self_host_click", { path: "/" });
-  }, []);
-
-  const onGithub = useCallback(() => {
-    track("github_click", { path: "/" });
   }, []);
 
   return {
@@ -356,30 +289,5 @@ export function useHomeController() {
     onSignIn,
     onTryCloud,
     onSelfHost,
-    onSelfHostDocs,
-    onGithub,
   };
-}
-
-/**
- * /docs/api — marketing-nav wiring for the public API reference (X-2).
- * Same instrumentation contract as the home nav: live star count,
- * `try_cloud_click` + `/signin` handoff, page_view on mount.
- */
-export function useDocsApiController() {
-  const router = useRouter();
-  const stars = useGithubStars();
-
-  usePageView("/docs/api");
-
-  const onSignIn = useCallback(() => {
-    router.push("/signin");
-  }, [router]);
-
-  const onTryCloud = useCallback(() => {
-    track("try_cloud_click", { path: "/docs/api" });
-    router.push("/signin");
-  }, [router]);
-
-  return { stars, onSignIn, onTryCloud };
 }

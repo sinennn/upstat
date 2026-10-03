@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { clearGatewaySession } from "@/auth/session";
 import { ApiError } from "@/models";
 
 export interface RequestState<T> {
@@ -41,6 +42,13 @@ export function useRequest<T>(
       const result = await fnRef.current();
       if (seq.current === id) setData(result);
     } catch (e) {
+      // the backend rejected the session (expired/invalid JWT): it is no
+      // longer usable anywhere, so drop it and start over at sign-in
+      if (e instanceof ApiError && e.status === 401) {
+        clearGatewaySession();
+        window.location.assign("/signin");
+        return;
+      }
       if (seq.current === id) setError(e as Error);
     } finally {
       if (seq.current === id) setLoading(false);

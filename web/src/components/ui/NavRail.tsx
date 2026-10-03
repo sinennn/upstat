@@ -4,19 +4,10 @@ import { clsx } from "clsx";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  BarChart3,
-  Bell,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
-  FileText,
   Flame,
-  Globe,
-  House,
-  LayoutDashboard,
-  Route,
   Settings,
-  Target,
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
@@ -122,46 +113,17 @@ export function NavRailItem({
   );
 }
 
-/**
- * The pages.md Part B pillar order. Icons are the reconciled §8.1 list
- * (adjudicated 2026-07-20, master 284:2 vs code): the master's glyph wins
- * where it is in the ratified Stage-0 set (pillar glyphs + extended list) —
- * bar-chart-3 (metrics), file-text (logs), globe (RUM), activity
- * (synthetics/uptime), bell, target, house, layout-dashboard, settings;
- * code's glyph stays where the master's is unratified — flame (incidents;
- * master's alert-triangle is not in §8.1), book-open (catalog; master's
- * layers is not in §8.1). Traces takes `route` — the ratified APM/Traces
- * pillar glyph — because code's activity moved to Synthetics per the
- * master and the master's git-branch is unratified.
- */
+/** The app's sections — exactly the backend's surfaces. */
 export const NAV_PILLARS: { key: string; label: string; icon: LucideIcon }[] = [
-  { key: "home", label: "Home", icon: House },
-  { key: "dashboards", label: "Dashboards", icon: LayoutDashboard },
-  { key: "metrics", label: "Metrics", icon: BarChart3 },
-  { key: "logs", label: "Logs", icon: FileText },
-  { key: "traces", label: "Traces", icon: Route },
-  { key: "rum", label: "RUM / Analytics", icon: Globe },
-  { key: "uptime", label: "Synthetics / Uptime", icon: Activity },
-  { key: "monitors", label: "Monitors", icon: Bell },
+  { key: "monitors", label: "Monitors", icon: Activity },
   { key: "incidents", label: "Incidents", icon: Flame },
-  { key: "slos", label: "SLOs", icon: Target },
-  { key: "catalog", label: "Service Catalog", icon: BookOpen },
   { key: "settings", label: "Settings", icon: Settings },
 ];
 
-/**
- * Pillar section groups (design.md §2 Telemetry / Respond / Platform) —
- * B-order preserved; Home AND Dashboards ungrouped above TELEMETRY per
- * the master (284:2, adjudicated 2026-07-20).
- */
+/** Section groups — one per backend surface the app has. */
 export const NAV_SECTIONS: { title: string | null; keys: string[] }[] = [
-  { title: null, keys: ["home", "dashboards"] },
-  {
-    title: "Telemetry",
-    keys: ["metrics", "logs", "traces", "rum", "uptime"],
-  },
-  { title: "Respond", keys: ["monitors", "incidents", "slos"] },
-  { title: "Platform", keys: ["catalog", "settings"] },
+  { title: null, keys: ["monitors", "incidents"] },
+  { title: "Account", keys: ["settings"] },
 ];
 
 /** design.md §2: the persisted expansion choice. */

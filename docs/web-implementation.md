@@ -11,6 +11,52 @@
 > [pages.md](pages.md) (screens), [api.md](api.md) +
 > [openapi.yaml](api/openapi.yaml) (surface).
 
+## 0. As built 2026-10-03 — the UI is exactly the backend **[Directive]**
+
+**This section supersedes the rest of this document wherever they
+disagree.** The web app now renders only what `api/common` serves
+(`proto.UserService` + `proto.MonitorService`); every mock-only pillar —
+dashboards, metrics, logs, traces, RUM, synthetics, alert rules/channels,
+SLOs, service catalog, keys, members, usage, orgs/onboarding, the status
+page builder, declared incidents/timelines/postmortems, `/docs/api` — was
+deleted, along with the HTTP mock server (`/api/mock/*`) and its seed.
+
+| Route | Backend |
+| --- | --- |
+| `/signin` | `GoogleAuth` (Google popup → ID token), `GetUser` (email + password), `CreateUser` then `GetUser` (sign-up) |
+| `/signin/callback` | Google popup redirect target (hands the ID token back over a `BroadcastChannel`) |
+| `/dashboard` | `ListMonitors`; mute via `UpdateMonitor` |
+| `/dashboard/monitors/new`, `/[id]/edit` | `CreateMonitor` / `UpdateMonitor` (name, type, URL, interval, timeout, failure threshold) |
+| `/dashboard/monitors/[id]` | `GetMonitor`, `GetMonitorHistory` (90-day strip, last 100 checks), `ListIncidents(monitor_id)`, `GetMonitorInsight`; pause/resume, mute, delete |
+| `/dashboard/incidents`, `/[id]` | `ListIncidents` (read-only — the worker opens/resolves incidents) |
+| `/dashboard/settings` | `UpdateUser` (name, email, password), `DeleteUser`, link to the owner status page |
+| `/status/[slug]`, `/status/owner/[ownerId]` | `GetStatusPage` (public) |
+
+**Layers.** Views → controllers → `models/repositories/grpc/repos.ts` →
+`grpc/transport.ts` → gRPC-Web → Envoy. Proto → model translation is in
+`grpc/mappers.ts`; the protobuf messages in `src/proto/user_pb.ts` are
+hand-maintained and must track `api/common/internal/proto/*.proto`.
+The session is the backend's JWT in sessionStorage (`auth/session.ts`); a
+401 from any RPC clears it and returns to `/signin`.
+
+**TEST_MODE** (`NEXT_PUBLIC_TEST_MODE=1`) swaps the gRPC clients for
+`grpc/fake-backend.ts` at the transport seam — an in-memory implementation
+of both services that mirrors the Go handlers (validation messages, gRPC
+codes, defaults, owner scoping, the unauthenticated allowlist) and
+simulates the check worker's threshold → incident → resolve cycle. The
+Google button skips the Google popup. Seed: `ibukun@cuesoft.io` /
+`upstat-test`, monitors Website (up), API (down, open incident), Docs
+(paused), Blog (pending), and status page slug `upstat`.
+`fake-backend.test.ts` pins the parity.
+
+**Config.** `NEXT_PUBLIC_ENVOY_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (= the
+backend's `GOOGLE_CLIENT_ID`; register `<origin>/signin/callback` as an
+authorized redirect URI), `NEXT_PUBLIC_TEST_MODE`.
+
+The marketing landing (`/`) is unchanged and still describes the broader
+product vision; its demo panels are illustration data
+(`controllers/home-demo.ts`, `components/home/demo-types.ts`).
+
 ## 1. The standard (ecosystem, shared across the three products)
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
@@ -762,12 +808,12 @@ on it:
    server — `/api/mock/v1/*` mirrors the `/v1/*` surface path-for-path, so
    repositories are identical in both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + the real API base from
+Unset (or `0`) → real `GatewayAuthProvider` + the real API base from
 `NEXT_PUBLIC_API_BASE` (api/common HTTP). The new app consumes **HTTP/JSON
 only** (U-5/X-8 — no new gRPC-Web surface); until monitors-v2 lands, the
 real-backend monitor path is bridged inside the models seam (§8), never in
-views. TEST_MODE is how Playwright runs in CI and how W1–W3 are built
-before the backend surfaces exist.
+views.
+
 
 ## 6. Mock server & seed narrative
 
@@ -886,6 +932,7 @@ models seam (views stay HTTP-shaped, §5); when monitors-v2 flips the
 dashboard fully HTTP and Envoy retires from the cloud topology, the
 proto tree quarantines and retires in its own PR — synchronized with
 the backend migration, not the W stages.
+
 
 `mobile/` (Part C companion) is untouched by W0–W3 and gets its own
 implementation standard — including its own application of the quarantine

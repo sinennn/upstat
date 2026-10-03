@@ -8,6 +8,8 @@ import { Tooltip } from "./Tooltip";
 export interface StatusPageComponentRowProps {
   name: string;
   status: StatusPillStatus;
+  /** Pill copy override (defaults to the status name). */
+  statusLabel?: string;
   /** 90-day strip (UptimeCard technique, §8.2). */
   days: UptimeDay[];
   uptimePct: number | null;
@@ -29,6 +31,7 @@ function barTint(day: UptimeDay): string {
 export function StatusPageComponentRow({
   name,
   status,
+  statusLabel,
   days,
   uptimePct,
   layout = "stacked",
@@ -45,7 +48,7 @@ export function StatusPageComponentRow({
         <span className="w-24 truncate text-[13px] font-medium text-text">
           {name}
         </span>
-        <StatusPill status={status} />
+        <StatusPill status={status} label={statusLabel} />
         {/* overflow-x-auto: the fixed-width bars scroll on narrow viewports */}
         <div
           className="ml-auto flex h-4 items-stretch gap-px overflow-x-auto"
@@ -88,7 +91,7 @@ export function StatusPageComponentRow({
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-medium text-text">{name}</span>
-        <StatusPill status={status} />
+        <StatusPill status={status} label={statusLabel} />
       </div>
       {/* overflow-x-auto: 90 fixed-width bars scroll on narrow viewports */}
       <div

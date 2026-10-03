@@ -229,7 +229,7 @@ html[data-nav-expanded] {
      forces computed overflow-y to `auto`, which turns <body> into a
      scroll container and silently breaks every position:sticky
      descendant (the marketing nav rode away with the scroll — caught by
-     the /docs/api header e2e under CI). `clip` clips without creating a
+     a sticky-header e2e under CI). `clip` clips without creating a
      scroll container. */
   html,
   body {

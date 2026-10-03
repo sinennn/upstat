@@ -21,6 +21,7 @@ type MonitorServiceServer struct {
 	MonitorRepo     repository.MonitorRepository
 	CheckResultRepo repository.CheckResultRepository
 	IncidentRepo    repository.IncidentRepository
+	StatusPageRepo  repository.StatusPageRepository
 	InsightGRPCConn *grpc.ClientConn
 	InsightClient   pb.InsightServiceClient
 }
@@ -45,6 +46,7 @@ func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
 		MonitorRepo:     repository.NewMonitorRepository(db),
 		CheckResultRepo: repository.NewCheckResultRepository(db),
 		IncidentRepo:    repository.NewIncidentRepository(db),
+		StatusPageRepo:  repository.NewStatusPageRepository(db),
 		InsightGRPCConn: conn,
 		InsightClient:   insightClient,
 	}
@@ -61,6 +63,22 @@ func (s *MonitorServiceServer) CreateMonitor(ctx context.Context, req *pb.Create
 		return nil, status.Error(codes.InvalidArgument, "name, type and target required")
 	}
 
+	interval := int(req.GetIntervalSeconds())
+	if interval <= 0 {
+		interval = 60
+	}
+	timeout := int(req.GetTimeoutSeconds())
+	if timeout <= 0 {
+		timeout = 10
+	}
+	threshold := int(req.GetFailureThreshold())
+	if threshold <= 0 {
+		threshold = 3
+	}
+	if timeout >= interval {
+		return nil, status.Error(codes.InvalidArgument, "timeout must be below the check interval")
+	}
+
 	monitor, err := s.MonitorRepo.CreateMonitor(model.Monitor{
 		OwnerId:             ownerID,
 		Name:                req.GetName(),
@@ -68,9 +86,9 @@ func (s *MonitorServiceServer) CreateMonitor(ctx context.Context, req *pb.Create
 		Type:                req.GetType(),
 		Active:              true,
 		Status:              "unknown",
-		IntervalSeconds:     60,
-		TimeoutSeconds:      10,
-		FailureThreshold:    3,
+		IntervalSeconds:     interval,
+		TimeoutSeconds:      timeout,
+		FailureThreshold:    threshold,
 		ConsecutiveFailures: 0,
 	})
 
@@ -100,7 +118,9 @@ func (s *MonitorServiceServer) GetMonitor(ctx context.Context, req *pb.GetMonito
 	monitor, err := s.MonitorRepo.GetMonitor(req.GetId(), ownerID)
 
 	if err != nil {
-		return nil, err
+		// Uniform cross-owner + missing read: NotFound (never leak whether
+		// the document exists for a different owner).
+		return nil, status.Error(codes.NotFound, "monitor not found")
 	}
 
 	return &pb.MonitorResponse{
@@ -118,23 +138,65 @@ func (s *MonitorServiceServer) UpdateMonitor(ctx context.Context, req *pb.Update
 		return nil, status.Error(codes.Unauthenticated, "user is not authenticated")
 	}
 
-	if req.GetId() == "" || req.GetName() == "" || req.GetType() == "" || req.GetTarget() == "" {
-		return nil, status.Error(codes.InvalidArgument, "id, name, type and target required")
+	if req.GetId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "id is required")
 	}
 
-	monitor, err := s.MonitorRepo.UpdateMonitor(req.GetId(), ownerID, model.Monitor{
-		OwnerId: ownerID,
-		Name:    req.GetName(),
-		Type:    req.GetType(),
-		Target:  req.GetTarget(),
-	})
+	// Patch semantics: load the caller's monitor, then overlay only the
+	// request fields that are present. This lets a partial update (e.g. a
+	// mute toggle, or an active flip) mutate one facet without clobbering
+	// the others, and keeps the owner-scoped read as the authorization gate.
+	current, err := s.MonitorRepo.GetMonitor(req.GetId(), ownerID)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "monitor not found")
+	}
 
+	next := *current
+	next.Name = current.Name
+	next.Type = current.Type
+	next.Target = current.Target
+	next.Active = current.Active
+	next.Muted = current.Muted
+	next.IntervalSeconds = current.IntervalSeconds
+	next.TimeoutSeconds = current.TimeoutSeconds
+	next.FailureThreshold = current.FailureThreshold
+
+	if req.GetName() != "" {
+		next.Name = req.GetName()
+	}
+	if req.GetType() != "" {
+		next.Type = req.GetType()
+	}
+	if req.GetTarget() != "" {
+		next.Target = req.GetTarget()
+	}
+	if req.Active != nil {
+		next.Active = req.GetActive()
+	}
+	if req.Muted != nil {
+		next.Muted = req.GetMuted()
+	}
+	if req.IntervalSeconds != nil {
+		next.IntervalSeconds = int(req.GetIntervalSeconds())
+	}
+	if req.TimeoutSeconds != nil {
+		next.TimeoutSeconds = int(req.GetTimeoutSeconds())
+	}
+	if req.FailureThreshold != nil {
+		next.FailureThreshold = int(req.GetFailureThreshold())
+	}
+
+	if next.TimeoutSeconds >= next.IntervalSeconds {
+		return nil, status.Error(codes.InvalidArgument, "timeout must be below the check interval")
+	}
+
+	updated, err := s.MonitorRepo.UpdateMonitor(req.GetId(), ownerID, next)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "monitor not found")
 	}
 
 	return &pb.MonitorResponse{
-		Monitor: monitorResponse(monitor),
+		Monitor: monitorResponse(updated),
 		Status:  "success",
 	}, nil
 
@@ -190,10 +252,24 @@ func (s *MonitorServiceServer) GetStatusPage(
 	ctx context.Context,
 	req *pb.GetStatusPageRequest,
 ) (*pb.GetStatusPageResponse, error) {
-	if req.GetOwnerId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "owner_id is required")
+	ownerID := req.GetOwnerId()
+	pageName := ""
+
+	// A public slug resolves to an owner through the StatusPage document —
+	// /status/{slug} must never require knowing a raw owner id.
+	if ownerID == "" && req.GetSlug() != "" {
+		page, err := s.StatusPageRepo.GetBySlug(req.GetSlug())
+		if err != nil {
+			return nil, status.Error(codes.NotFound, "status page not found")
+		}
+		ownerID = page.OwnerId
+		pageName = page.Name
 	}
-	monitors, err := s.MonitorRepo.ListMonitors(req.GetOwnerId())
+
+	if ownerID == "" {
+		return nil, status.Error(codes.InvalidArgument, "owner_id or slug is required")
+	}
+	monitors, err := s.MonitorRepo.ListMonitors(ownerID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "could not list monitors")
 	}
@@ -215,6 +291,15 @@ func (s *MonitorServiceServer) GetStatusPage(
 		return nil, status.Error(codes.Internal, "could not calculate uptime statistics")
 	}
 
+	components, err := s.statusPageComponents(monitors)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not build status page components")
+	}
+
+	if pageName == "" {
+		pageName = req.GetSlug()
+	}
+
 	return &pb.GetStatusPageResponse{
 		Monitors:            monitorsResponse(monitors),
 		ActiveIncidents:     incidentsResponse(activeIncidents),
@@ -222,7 +307,65 @@ func (s *MonitorServiceServer) GetStatusPage(
 		UptimePercentage:    uptimePercentage,
 		TotalChecks:         totalChecks,
 		SuccessfulChecks:    successfulChecks,
+		Components:          components,
+		PageName:            pageName,
 	}, nil
+}
+
+// statusPageComponents renders one row per monitor from the same persisted
+// CheckResult data the detail view uses — no second metrics system. Each row
+// carries the 90-day daily strip, the window uptime percentage (derived from
+// the same daily buckets so the row and its strip cannot disagree) and the
+// observed p95 response time.
+func (s *MonitorServiceServer) statusPageComponents(monitors []*model.Monitor) ([]*pb.StatusPageComponent, error) {
+	const days = 90
+
+	components := make([]*pb.StatusPageComponent, 0, len(monitors))
+
+	for _, monitor := range monitors {
+		monitorID := monitor.Id.Hex()
+
+		daily, err := s.CheckResultRepo.ListDailyUptime(monitorID, time.Now().AddDate(0, 0, -days))
+		if err != nil {
+			return nil, err
+		}
+
+		// CountTotalSince/CountSuccessfulSince are the same raw counters the
+		// rollup aggregates; used here so a row with data outside the daily
+		// window still reports honestly instead of silently reading 0%.
+		since := time.Now().AddDate(0, 0, -days)
+		total, err := s.CheckResultRepo.CountTotalSince(monitorID, since)
+		if err != nil {
+			return nil, err
+		}
+		successful, err := s.CheckResultRepo.CountSuccessfulSince(monitorID, since)
+		if err != nil {
+			return nil, err
+		}
+
+		uptimePct := 0.0
+		if total > 0 {
+			uptimePct = (float64(successful) / float64(total)) * 100
+		}
+
+		p95, err := s.CheckResultRepo.P95ResponseTimeSince(monitorID, since)
+		if err != nil {
+			return nil, err
+		}
+
+		components = append(components, &pb.StatusPageComponent{
+			MonitorId:   monitorID,
+			Name:        monitor.Name,
+			Status:      monitor.Status,
+			HasUptime:   total > 0,
+			UptimePct:   uptimePct,
+			Days:        uptimeDays(daily, monitor.IntervalSeconds, days),
+			P95Ms:       p95,
+			LastCheckAt: formatOptionalTime(monitor.LastCheckedAt),
+		})
+	}
+
+	return components, nil
 }
 
 func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetRecentChecksRequest) (*pb.GetRecentChecksResponse, error) {
@@ -254,6 +397,171 @@ func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetR
 	return &pb.GetRecentChecksResponse{
 		Checks: protoChecks,
 	}, nil
+}
+
+func (s *MonitorServiceServer) GetMonitorHistory(ctx context.Context, req *pb.GetMonitorHistoryRequest) (*pb.GetMonitorHistoryResponse, error) {
+	ownerID, ok := util.UserIDFromContext(ctx)
+	if !ok || ownerID == "" {
+		return nil, status.Error(codes.Unauthenticated, "user is not authenticated")
+	}
+	if req.GetMonitorId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
+	}
+
+	// Owner-scoped read gate: a caller can only view its own monitor's data.
+	if _, err := s.MonitorRepo.GetMonitor(req.GetMonitorId(), ownerID); err != nil {
+		return nil, status.Error(codes.NotFound, "monitor not found")
+	}
+
+	days := int(req.GetDays())
+	if days <= 0 {
+		days = 90
+	}
+	if days > 90 {
+		days = 90
+	}
+
+	limit := int64(req.GetLimit())
+	if limit <= 0 {
+		limit = 100
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	checks, err := s.CheckResultRepo.ListRecentByMonitor(req.GetMonitorId(), limit)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not retrieve recent checks")
+	}
+
+	protoChecks := make([]*pb.MonitorCheck, 0, len(checks))
+	for _, check := range checks {
+		protoChecks = append(protoChecks, &pb.MonitorCheck{
+			MonitorId:    check.MonitorID,
+			Success:      check.Status == "up",
+			ResponseTime: int32(check.ResponseTimeMs),
+			StatusCode:   int32(check.StatusCode),
+			CheckedAt:    check.CheckedAt.Format(time.RFC3339),
+		})
+	}
+
+	// Per-day uptime aggregates from the persisted CheckResult data. Gaps
+	// (no checks on a day) render as nodata days; down_minutes is estimated
+	// from failed checks × the check interval, honest about its resolution.
+	// The monitor's interval is read from the persisted record.
+	monitor, err := s.MonitorRepo.GetMonitor(req.GetMonitorId(), ownerID)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "monitor not found")
+	}
+	intervalSeconds := monitor.IntervalSeconds
+	if intervalSeconds <= 0 {
+		intervalSeconds = 60
+	}
+
+	since := time.Now().UTC().AddDate(0, 0, -days)
+
+	aggregates, err := s.CheckResultRepo.ListDailyUptime(req.GetMonitorId(), since)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not aggregate uptime")
+	}
+
+	var total int64
+	var successful int64
+	for _, agg := range aggregates {
+		total += agg.Total
+		successful += agg.Successful
+	}
+
+	response := &pb.GetMonitorHistoryResponse{
+		RecentChecks: protoChecks,
+		Days:         uptimeDays(aggregates, intervalSeconds, days),
+	}
+	if total > 0 {
+		response.HasUptime = true
+		response.OverallUptimePct = (float64(successful) / float64(total)) * 100
+	}
+
+	return response, nil
+}
+
+// uptimeDays renders a fixed-width, oldest-first window of per-day uptime
+// rows from sparse daily aggregates. A day with no checks is emitted with
+// HasData=false so the strip renders a nodata gap rather than a fake 100%.
+// down_minutes is derived from failed checks × the check interval — an
+// estimate at check resolution, capped at a full day.
+func uptimeDays(aggregates []*model.DailyUptime, intervalSeconds, days int) []*pb.MonitorUptimeDay {
+	now := time.Now().UTC()
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	byDate := make(map[string]*model.DailyUptime, len(aggregates))
+	for _, agg := range aggregates {
+		byDate[agg.Date] = agg
+	}
+
+	response := make([]*pb.MonitorUptimeDay, 0, days)
+	for i := days - 1; i >= 0; i-- {
+		date := startOfToday.AddDate(0, 0, -i).Format("2006-01-02")
+		agg, ok := byDate[date]
+		if !ok || agg.Total == 0 {
+			response = append(response, &pb.MonitorUptimeDay{Date: date, HasData: false})
+			continue
+		}
+
+		downMinutes := int64(0)
+		if agg.Total > agg.Successful {
+			downMinutes = (agg.Total - agg.Successful) * int64(intervalSeconds) / 60
+			if downMinutes > 1440 {
+				downMinutes = 1440
+			}
+		}
+
+		response = append(response, &pb.MonitorUptimeDay{
+			Date:        date,
+			HasData:     true,
+			UptimePct:   (float64(agg.Successful) / float64(agg.Total)) * 100,
+			DownMinutes: downMinutes,
+		})
+	}
+
+	return response
+}
+
+func formatOptionalTime(value *time.Time) string {
+	if value == nil {
+		return ""
+	}
+	return value.Format(time.RFC3339)
+}
+
+func (s *MonitorServiceServer) ListIncidents(ctx context.Context, req *pb.ListIncidentsRequest) (*pb.ListIncidentsResponse, error) {
+	ownerID, ok := util.UserIDFromContext(ctx)
+	if !ok || ownerID == "" {
+		return nil, status.Error(codes.Unauthenticated, "user is not authenticated")
+	}
+
+	if req.GetMonitorId() != "" {
+		// Owner-scoped: the monitor must belong to the caller.
+		if _, err := s.MonitorRepo.GetMonitor(req.GetMonitorId(), ownerID); err != nil {
+			return nil, status.Error(codes.NotFound, "monitor not found")
+		}
+		incidents, err := s.IncidentRepo.ListIncidentsByMonitor(req.GetMonitorId(), 100)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "could not list incidents")
+		}
+		return &pb.ListIncidentsResponse{Incidents: incidentsResponse(incidents)}, nil
+	}
+
+	monitors, err := s.MonitorRepo.ListMonitors(ownerID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not list monitors")
+	}
+
+	incidents, err := s.IncidentRepo.ListIncidentsByMonitorIDs(monitorIDs(monitors), 100)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not list incidents")
+	}
+
+	return &pb.ListIncidentsResponse{Incidents: incidentsResponse(incidents)}, nil
 }
 
 func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
@@ -344,6 +652,7 @@ func monitorResponse(monitor *model.Monitor) *pb.Monitor {
 		TimeoutSeconds:      int32(monitor.TimeoutSeconds),
 		FailureThreshold:    int32(monitor.FailureThreshold),
 		ConsecutiveFailures: int32(monitor.ConsecutiveFailures),
+		Muted:               monitor.Muted,
 		LastCheckedAt:       lastCheckedAt,
 		LastResponseTimeMs:  monitor.LastResponseTimeMs,
 		LastStatusCode:      int32(monitor.LastStatusCode),

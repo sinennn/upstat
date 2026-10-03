@@ -8,17 +8,30 @@ async function signIn(page: Page) {
   await page.goto("/signin");
   await page.getByRole("button", { name: /continue with google/i }).click();
   await page.waitForURL("**/dashboard**");
-  await expect(page.getByTestId("dashboard-home")).toBeVisible();
+  await expect(page.getByTestId("monitors")).toBeVisible();
 }
 
 test("first Tab lands on the skip link; activating it focuses #main", async ({
   page,
 }) => {
   await signIn(page);
-  // Anchor focus at the document start — body is the post-navigation state.
-  await page.locator("body").focus();
+  // Anchor focus at the document start: drop whatever element holds focus
+  // after the client-side navigation (body.focus() is a no-op on <body>).
+  await page.evaluate(() =>
+    (document.activeElement as HTMLElement | null)?.blur(),
+  );
 
   await page.keyboard.press("Tab");
+  // local dev runs only: once the dev server has logged an issue, Next's
+  // dev-tools indicator (<nextjs-portal>) takes the first tab stop. It is
+  // not part of the app and does not exist under `next start` (CI).
+  if (
+    await page.evaluate(
+      () => document.activeElement?.tagName === "NEXTJS-PORTAL",
+    )
+  ) {
+    await page.keyboard.press("Tab");
+  }
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
 
