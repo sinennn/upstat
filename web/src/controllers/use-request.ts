@@ -10,6 +10,17 @@ export interface RequestState<T> {
   error: ApiError | Error | null;
   /** Re-runs the fetch (controllers call this after mutations). */
   reload: () => Promise<void>;
+  /** When data last arrived (ms epoch); null before the first load. */
+  updatedAt: number | null;
+}
+
+export interface RequestOptions {
+  /**
+   * Re-fetch in the background every N ms while the tab is visible. A
+   * background refresh never flips `loading` and never replaces good data
+   * with an error — a blip mid-demo keeps the last known state on screen.
+   */
+  refreshMs?: number;
 }
 
 /**
@@ -20,8 +31,10 @@ export interface RequestState<T> {
 export function useRequest<T>(
   fn: () => Promise<T>,
   deps: unknown[] = [],
+  options: RequestOptions = {},
 ): RequestState<T> {
   const [data, setData] = useState<T | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | Error | null>(null);
   const seq = useRef(0);
@@ -34,13 +47,19 @@ export function useRequest<T>(
   });
   const depsKey = JSON.stringify(deps);
 
-  const reload = useCallback(async () => {
+  const run = useCallback(async (background: boolean) => {
     const id = ++seq.current;
-    setLoading(true);
-    setError(null);
+    if (!background) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const result = await fnRef.current();
-      if (seq.current === id) setData(result);
+      if (seq.current === id) {
+        setData(result);
+        setError(null);
+        setUpdatedAt(Date.now());
+      }
     } catch (e) {
       // the backend rejected the session (expired/invalid JWT): it is no
       // longer usable anywhere, so drop it and start over at sign-in
@@ -49,11 +68,13 @@ export function useRequest<T>(
         window.location.assign("/signin");
         return;
       }
-      if (seq.current === id) setError(e as Error);
+      if (seq.current === id && !background) setError(e as Error);
     } finally {
-      if (seq.current === id) setLoading(false);
+      if (seq.current === id && !background) setLoading(false);
     }
   }, []);
+
+  const reload = useCallback(() => run(false), [run]);
 
   useEffect(() => {
     // Deferred a tick: keeps setState out of the synchronous effect body
@@ -65,5 +86,14 @@ export function useRequest<T>(
     // depsKey re-runs the load when the caller's inputs change
   }, [reload, depsKey]);
 
-  return { data, loading, error, reload };
+  const { refreshMs } = options;
+  useEffect(() => {
+    if (!refreshMs) return;
+    const t = window.setInterval(() => {
+      if (!document.hidden) void run(true);
+    }, refreshMs);
+    return () => window.clearInterval(t);
+  }, [run, refreshMs, depsKey]);
+
+  return { data, loading, error, reload, updatedAt };
 }

@@ -2,6 +2,7 @@
 
 import { clsx } from "clsx";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { StatusPill, type StatusPillStatus } from "./StatusPill";
 import { Switch } from "./Switch";
 
@@ -16,6 +17,8 @@ export interface MonitorRowProps {
   lastCheck: string;
   /** e.g. `every 60s`. */
   cadence: string;
+  /** Recent-checks sparkline slot (hidden on narrow screens). */
+  trend?: ReactNode;
   muted: boolean;
   onMutedChange?: (muted: boolean) => void;
   href: string;
@@ -33,6 +36,7 @@ export function MonitorRow({
   target,
   lastCheck,
   cadence,
+  trend,
   muted,
   onMutedChange,
   href,
@@ -61,6 +65,7 @@ export function MonitorRow({
             {target}
           </span>
         </span>
+        {trend && <span className="hidden shrink-0 lg:block">{trend}</span>}
         <span className="hidden w-36 shrink-0 text-right text-[12px] tabular-nums text-text-2 sm:block">
           {lastCheck}
         </span>

@@ -47,6 +47,8 @@ export interface TimeseriesPanelProps {
    * WidgetShell provides the chrome when the panel is a dashboard widget.
    */
   chrome?: boolean;
+  /** X labels: `time` = hh:mm (default), `date` = "Oct 4" for daily buckets. */
+  timeFormat?: "time" | "date";
   /**
    * Y-label unit suffix ("600 ms" ladder, master 50:407; zero stays bare).
    * Defaults to a sniff of the series/query metric name (`*_ms` → "ms").
@@ -110,6 +112,26 @@ function formatTime(ts: string): string {
   return ts.slice(11, 16);
 }
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** `2026-10-04T…` → `Oct 4` (UTC) — for day-bucketed series. */
+function formatDate(ts: string): string {
+  return `${MONTHS.at(Number(ts.slice(5, 7)) - 1)} ${Number(ts.slice(8, 10))}`;
+}
+
 function formatTimeSeconds(ts: string): string {
   // hh:mm:ss for the crosshair tooltip header (master 50:407: "14:32:00").
   return ts.slice(11, 19);
@@ -151,6 +173,7 @@ export function TimeseriesPanel({
   series,
   mode = "line",
   withLegend = true,
+  timeFormat = "time",
   loading = false,
   height = 160,
   cursor = null,
@@ -271,7 +294,7 @@ export function TimeseriesPanel({
   ];
   const tableRows = (visible[0]?.points ?? []).map((p, ri) => {
     const row: Record<string, string | number | null> = {
-      ts: formatTime(p.ts),
+      ts: timeFormat === "date" ? formatDate(p.ts) : formatTime(p.ts),
     };
     visible.forEach((s, si) => {
       const v = s.points[ri]?.value;
@@ -401,7 +424,7 @@ export function TimeseriesPanel({
                     fill="var(--color-text-2)"
                     className="font-data tabular-nums"
                   >
-                    {formatTime(ts)}
+                    {timeFormat === "date" ? formatDate(ts) : formatTime(ts)}
                   </text>
                 );
               })}
@@ -558,7 +581,9 @@ export function TimeseriesPanel({
               }}
             >
               <span className="text-text-2">
-                {formatTimeSeconds(visible[0].points[cursorIndex].ts)}
+                {timeFormat === "date"
+                  ? formatDate(visible[0].points[cursorIndex].ts)
+                  : formatTimeSeconds(visible[0].points[cursorIndex].ts)}
               </span>
               {visible.map((s) => (
                 <span

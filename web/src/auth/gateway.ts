@@ -1,8 +1,10 @@
 import { env } from "@/config/env";
+import { isDesktopShell, loopbackSignIn } from "@/desktop/bridge";
 import { authRepo } from "@/models/repositories/grpc/repos";
 import type { GatewaySession } from "./session";
 import {
   GOOGLE_CALLBACK_MESSAGE,
+  parseGoogleCallback,
   type GoogleCallbackMessage,
 } from "./google-callback";
 import type { AuthProvider, AuthUser } from "./provider";
@@ -15,6 +17,20 @@ import {
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const CALLBACK_PATH = "/signin/callback";
 const SIGN_IN_TIMEOUT_MS = 2 * 60 * 1000;
+
+/** Google's OIDC implicit-flow URL — the ID token comes back in the fragment. */
+function googleAuthUrl(redirectUri: string, state: string): string {
+  const params = new URLSearchParams({
+    client_id: env.googleClientId,
+    redirect_uri: redirectUri,
+    response_type: "id_token",
+    scope: "openid email profile",
+    nonce: randomToken(),
+    state,
+    prompt: "select_account",
+  });
+  return `${GOOGLE_AUTH_URL}?${params}`;
+}
 
 function randomToken(): string {
   const bytes = new Uint8Array(16);
@@ -52,18 +68,11 @@ export class GatewayAuthProvider implements AuthProvider {
       );
     }
 
+    if (isDesktopShell()) return this.signInWithGoogleDesktop();
+
     const state = randomToken();
-    const params = new URLSearchParams({
-      client_id: env.googleClientId,
-      redirect_uri: `${window.location.origin}${CALLBACK_PATH}`,
-      response_type: "id_token",
-      scope: "openid email profile",
-      nonce: randomToken(),
-      state,
-      prompt: "select_account",
-    });
     const popup = window.open(
-      `${GOOGLE_AUTH_URL}?${params}`,
+      googleAuthUrl(`${window.location.origin}${CALLBACK_PATH}`, state),
       "upstat-google-signin",
       "popup,width=480,height=640",
     );
@@ -96,6 +105,27 @@ export class GatewayAuthProvider implements AuthProvider {
         reject(new Error("sign_in_timeout"));
       }, SIGN_IN_TIMEOUT_MS);
     }).then(async (idToken) => this.adopt(await authRepo.google(idToken)));
+  }
+
+  /**
+   * Desktop: Google can't redirect to the app's tauri:// origin, so the app
+   * listens on http://localhost:<port>/callback and opens Google in the
+   * system browser (RFC 8252 loopback). Same client ID and backend call as
+   * the web flow.
+   */
+  private async signInWithGoogleDesktop(): Promise<AuthUser> {
+    const state = randomToken();
+    const port = env.desktopOAuthPort;
+    const fragment = await loopbackSignIn(
+      googleAuthUrl(`http://localhost:${port}/callback`, state),
+      port,
+    );
+    const reply = parseGoogleCallback(`#${fragment}`);
+    if (reply.state !== state) throw new Error("state_mismatch");
+    if (reply.error || !reply.idToken) {
+      throw new Error(reply.error || "sign_in_failed");
+    }
+    return this.adopt(await authRepo.google(reply.idToken));
   }
 
   async signInWithPassword(email: string, password: string): Promise<AuthUser> {

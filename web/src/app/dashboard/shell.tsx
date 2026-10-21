@@ -11,8 +11,10 @@ import { Suspense, type ReactNode } from "react";
 import { IncidentBanner } from "@/components/ui/IncidentBanner";
 import { NavRail } from "@/components/ui/NavRail";
 import SkipLink from "@/components/ui/SkipLink";
+import { ToastProvider } from "@/components/ui/Toast";
 import { TopBar } from "@/components/ui/TopBar";
 import { ageLabel, useShellController } from "@/controllers/shell";
+import { routes } from "@/config/routes";
 
 /** NavRail key → route. */
 export const SECTION_ROUTES: Record<string, string> = {
@@ -27,7 +29,7 @@ function activeKeyFor(pathname: string): string {
   return "monitors";
 }
 
-export function DashboardShell({ children }: { children: ReactNode }) {
+function ShellChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const shell = useShellController();
@@ -67,7 +69,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             onClick={() =>
               router.push(
                 open.length === 1
-                  ? `/dashboard/incidents/${first.id}`
+                  ? routes.incident(first.id)
                   : "/dashboard/incidents",
               )
             }
@@ -83,5 +85,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
     </div>
+  );
+}
+
+export function DashboardShell({ children }: { children: ReactNode }) {
+  // toasts sit above the chrome: the shell controller announces incidents
+  return (
+    <ToastProvider>
+      <ShellChrome>{children}</ShellChrome>
+    </ToastProvider>
   );
 }

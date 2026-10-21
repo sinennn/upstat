@@ -115,7 +115,14 @@ func (s *MonitorServiceServer) GetMonitor(ctx context.Context, req *pb.GetMonito
 		return nil, status.Error(codes.InvalidArgument, "please pass a monitor id")
 	}
 
-	monitor, err := s.MonitorRepo.GetMonitor(req.GetId(), ownerID)
+	var monitor *model.Monitor
+	var err error
+	if ownerID == util.ServiceUserID {
+		// the insight service reads any monitor it is asked to score
+		monitor, err = s.MonitorRepo.GetMonitorByID(req.GetId())
+	} else {
+		monitor, err = s.MonitorRepo.GetMonitor(req.GetId(), ownerID)
+	}
 
 	if err != nil {
 		// Uniform cross-owner + missing read: NotFound (never leak whether

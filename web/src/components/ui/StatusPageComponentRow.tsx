@@ -17,6 +17,8 @@ export interface StatusPageComponentRowProps {
    *  name · pill · 2px bars · pct on one line; default keeps the stacked
    *  public-status-page layout (B7). */
   layout?: "stacked" | "inline";
+  /** inline only: stretch the 90 bars across the row (dashboard boards). */
+  fill?: boolean;
   className?: string;
 }
 
@@ -35,6 +37,7 @@ export function StatusPageComponentRow({
   days,
   uptimePct,
   layout = "stacked",
+  fill = false,
   className,
 }: StatusPageComponentRowProps) {
   if (layout === "inline") {
@@ -42,22 +45,34 @@ export function StatusPageComponentRow({
       <div
         className={clsx(
           "font-ui flex items-center gap-3 rounded-(--radius) border border-border px-3 py-1.5",
+          // narrow screens: the strip drops to its own full-width line
+          fill && "flex-wrap sm:flex-nowrap",
           className,
         )}
       >
         <span className="w-24 truncate text-[13px] font-medium text-text">
           {name}
         </span>
-        <StatusPill status={status} label={statusLabel} />
+        <StatusPill
+          status={status}
+          label={statusLabel}
+          className={fill ? "w-[76px] shrink-0" : undefined}
+        />
         {/* overflow-x-auto: the fixed-width bars scroll on narrow viewports */}
         <div
-          className="ml-auto flex h-4 items-stretch gap-px overflow-x-auto"
+          className={clsx(
+            "flex items-stretch gap-px",
+            fill
+              ? "order-last h-5 min-w-0 basis-full sm:order-none sm:ml-2 sm:basis-0 sm:flex-1"
+              : "ml-auto h-4 overflow-x-auto",
+          )}
           role="img"
           aria-label={`${name} 90-day uptime`}
         >
           {days.map((day) => (
             <Tooltip
               key={day.date}
+              grow={fill}
               content={[
                 {
                   label: day.date,
@@ -68,7 +83,8 @@ export function StatusPageComponentRow({
             >
               <span
                 className={clsx(
-                  "block h-4 w-[2px] rounded-[1px]",
+                  "block rounded-[1px]",
+                  fill ? "h-5 min-w-0 flex-1" : "h-4 w-[2px]",
                   barTint(day),
                 )}
               />

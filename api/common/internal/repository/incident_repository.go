@@ -43,9 +43,15 @@ func (db *incidentRepository) CreateIncident(incident *model.Incident) (model.In
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	now := time.Now()
 	incident.Id = primitive.NewObjectID()
-	incident.CreatedAt = time.Now()
-	incident.UpdatedAt = time.Now()
+	incident.CreatedAt = now
+	incident.UpdatedAt = now
+	// The worker opens incidents without a start time; without this the
+	// zero time is stored, and resolving computes a ~2000-year duration.
+	if incident.StartedAt.IsZero() {
+		incident.StartedAt = now
+	}
 
 	if incident.Status == "" {
 		incident.Status = "active"
@@ -66,7 +72,9 @@ func (db *incidentRepository) ListIncidentsByMonitor(monitorID string, limit int
 
 	listByMonitor := bson.M{"monitorId": monitorID}
 
-	findOptions := options.Find().SetLimit(limit)
+	findOptions := options.Find().
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "startedAt", Value: -1}})
 
 	cursor, err := collection.Find(ctx, listByMonitor, findOptions)
 	if err != nil {

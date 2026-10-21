@@ -9,6 +9,15 @@ import type { Metadata } from "next";
 // Route metadata for the client-composed status page — the one public
 // per-org surface, so it must not leak the root fallback title/description
 // (2026-07-21 audit).
+/**
+ * One placeholder so the desktop static export can build this dynamic
+ * route; the web build still renders any slug on demand. The desktop app
+ * opens status pages in the system browser instead.
+ */
+export function generateStaticParams() {
+  return [{ slug: "_" }];
+}
+
 export async function generateMetadata({
   params,
 }: {

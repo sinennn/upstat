@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/design/ThemeProvider";
 import { HomeView } from "./HomeView";
@@ -17,181 +17,58 @@ const renderHome = () =>
     </ThemeProvider>,
   );
 
-describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
-  it("renders every section of the landing", () => {
+// the full landing render is heavy; under a parallel suite it can exceed
+// the 5s default on slower machines
+describe("HomeView", { timeout: 20_000 }, () => {
+  it("renders every section", () => {
     renderHome();
-    // A2 hero
     expect(
-      screen.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
+      screen.getByRole("heading", { level: 1, name: /Know the moment/ }),
     ).toBeInTheDocument();
-    // A3 pillars ×8
-    expect(
-      screen.getByText("Eight pillars. One query grammar."),
-    ).toBeInTheDocument();
-    expect(document.querySelectorAll("#pillars [data-pillar]")).toHaveLength(8);
-    // A5 OTel + ingest flow
-    expect(
-      screen.getByText("Point your OpenTelemetry SDK at us. Done."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("upstat ingest + storage")).toBeInTheDocument();
-    // A12 how it works — 3 steps
-    expect(screen.getByText("How it works")).toBeInTheDocument();
-    expect(screen.getByText("Point your SDK at us")).toBeInTheDocument();
-    expect(screen.getByText("Send your first data")).toBeInTheDocument();
-    expect(screen.getByText("See everything")).toBeInTheDocument();
-    // A4 demo band
-    expect(
-      screen.getByText("It looks like this — with your data."),
-    ).toBeInTheDocument();
-    // A11 use-case quads ×4
-    expect(
-      screen.getByText("Dashboards that stay in sync"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("From alert to postmortem")).toBeInTheDocument();
-    expect(screen.getByText("Status pages people believe")).toBeInTheDocument();
-    expect(
-      screen.getByText("Analytics without the banner"),
-    ).toBeInTheDocument();
-    // A6 status embed
-    expect(screen.getByText("We run on it. Publicly.")).toBeInTheDocument();
-    expect(
-      screen.getByText(/\/status\/upstat — our own public status page/),
-    ).toBeInTheDocument();
-    // A14 self-host + A9 table
-    expect(
-      screen.getByText("Self-host — own your telemetry."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Cloud when you want it. Yours when you need it."),
-    ).toBeInTheDocument();
-    // ×2: the table's sm+ CTA footer and the <sm grouped CTA block (the
-    // pair is exclusive via CSS breakpoints, which jsdom doesn't apply)
-    expect(
-      screen.getAllByRole("button", { name: "Deploy with compose" }),
-    ).toHaveLength(2);
-    // A13 developers — the ratified stack line, verbatim
-    expect(
-      screen.getByText(
-        "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry",
-      ),
-    ).toBeInTheDocument();
-    // A8 community — the public-status CARD (canvas 225:11191 + pages.md
-    // A8: "View live →" → the product's own status page) with roadmap +
-    // CueLABS™ links beside it. CTA-dedupe canon: A13 keeps the one
-    // GitHub+Discord pair.
-    expect(
-      screen.getByText("Discord — #upstat-lab on the CueLABS™ server"),
-    ).toBeInTheDocument();
-    const statusCard = screen
-      .getByText("Public status — we run upstat on upstat")
-      .closest("a");
-    expect(statusCard).toHaveAttribute("href", "/status/upstat");
-    expect(statusCard).toHaveTextContent("View live →");
-    expect(
-      screen.getByRole("link", {
-        name: "CueLABS™ — more open-source software from Cuesoft →",
-      }),
-    ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
-    // A9 docs deep-link rows (canvas 135:763 + 259:3474): label copy with
-    // hyperlinks, no raw URL strings — the self-host label renders twice
-    // (the A9 row + its A14 twin, 164:9388), both at the GitBook guide
-    const selfHostLinks = screen.getAllByRole("link", {
-      name: "Self-host guide — step-by-step deploy docs →",
-    });
-    expect(selfHostLinks).toHaveLength(2);
-    for (const link of selfHostLinks) {
-      expect(link).toHaveAttribute(
-        "href",
-        "https://cuesoft.gitbook.io/upstat/system/deployment",
-      );
+    for (const id of [
+      "how-it-works",
+      "features",
+      "showcase",
+      "architecture",
+      "self-host",
+      "faq",
+    ]) {
+      expect(document.getElementById(id), id).not.toBeNull();
     }
     expect(
-      screen.getByRole("link", {
-        name: "Query grammar — one grammar across all eight pillars →",
-      }),
-    ).toHaveAttribute(
-      "href",
-      "https://cuesoft.gitbook.io/upstat/system/query-grammar",
-    );
-    // A15 FAQ + A16 CTA band
-    expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
-    expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();
-    // A10 footer — the canonical legal bar (parity canon 2026-07-19)
-    expect(
-      screen.getByText(/CueLABS™ Division/).closest("p"),
-    ).toHaveTextContent(
-      "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.",
-    );
+      screen.getByLabelText("Upstat dashboard preview"),
+    ).toBeInTheDocument();
   });
 
-  it("keeps the nav star badge neutral in TEST_MODE (no invented count)", () => {
-    renderHome();
-    const navigation = screen.getByRole("navigation", { name: "Marketing" });
-    expect(
-      within(navigation).getByRole("link", {
-        name: "Star cuesoftinc/upstat on GitHub",
-      }),
-    ).toHaveTextContent(/^Star$/);
-    expect(within(navigation).getByTestId("theme-toggle")).toBeInTheDocument();
+  it("describes only what the product does — no removed pillars", () => {
+    const { container } = renderHome();
+    const text = container.textContent ?? "";
+    for (const gone of ["OpenTelemetry", "RUM", "SLO", "traces", "Logs"]) {
+      expect(text, gone).not.toContain(gone);
+    }
   });
 
-  it("FAQ is single-open: opening one closes the other (A15)", async () => {
+  it("Get started routes to /signin", async () => {
     renderHome();
-    // first item open by default
-    expect(screen.getByText(FAQ_ITEMS[0].answer)).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole("button", { name: FAQ_ITEMS[1].question }),
-    );
-    expect(screen.getByText(FAQ_ITEMS[1].answer)).toBeInTheDocument();
-    expect(screen.queryByText(FAQ_ITEMS[0].answer)).toBeNull();
-  });
-
-  it("Try Cloud CTAs route to /signin", async () => {
-    push.mockClear();
-    renderHome();
-    const ctas = screen.getAllByRole("button", { name: "Try Cloud" });
-    expect(ctas.length).toBeGreaterThanOrEqual(3); // hero + table + mobile group + band
-    await userEvent.click(ctas[0]);
+    await userEvent.click(screen.getByTestId("hero-get-started"));
     expect(push).toHaveBeenCalledWith("/signin");
   });
 
-  it("accuracy: MIT copy present, no fabricated pricing", () => {
+  it("links the live demo status page", () => {
     renderHome();
-    // the MIT mention lives in the legal bar (the brand tagline is the
-    // master 290:2 line, no license copy)
     expect(
-      screen.getByRole("link", { name: "MIT License" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("All your telemetry. One open platform."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Self-hosting is free forever — cloud pricing will be announced at GA.",
-      ),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: /See a live status page/ }),
+    ).toHaveAttribute("href", "/status/demo");
   });
 
-  it("renders the use-case quads with their Read more anchors (§8.4 SCROLL_TO)", () => {
+  it("FAQ is single-open", async () => {
     renderHome();
-    const links = screen.getAllByRole("link", { name: "Read more →" });
-    expect(links.map((l) => l.getAttribute("href"))).toEqual([
-      "#demo",
-      "#status",
-      "#status",
-      "#faq",
-    ]);
-  });
-
-  it("demo band renders the seeded panels (uptime strip + query values)", () => {
-    renderHome();
-    const demo = document.getElementById("demo")!;
-    expect(
-      within(demo).getByText("availability · api-common"),
-    ).toBeInTheDocument();
-    expect(within(demo).getByText("99.98%")).toBeInTheDocument();
-    expect(
-      within(demo).getByText("p95 latency · api-common"),
-    ).toBeInTheDocument();
+    const [first, second] = FAQ_ITEMS;
+    expect(screen.getByText(first.answer)).toBeVisible();
+    await userEvent.click(
+      screen.getByRole("button", { name: second.question }),
+    );
+    expect(screen.getByText(second.answer)).toBeVisible();
+    expect(screen.queryByText(first.answer)).toBeNull();
   });
 });

@@ -12,6 +12,20 @@ import * as user_pb from "./user_pb";
 
 const PREFIX = "/proto.MonitorService";
 
+/**
+ * grpc-web 2.x exposes the promise-returning unary call as `unaryCall` at
+ * runtime; its bundled typings still declare `thenableCall`, which does not
+ * exist on the object (calling it throws). Type the real method here.
+ */
+interface UnaryClient {
+  unaryCall<REQ, RESP>(
+    method: string,
+    request: REQ,
+    metadata: grpcWeb.Metadata,
+    descriptor: grpcWeb.MethodDescriptor<REQ, RESP>,
+  ): Promise<RESP>;
+}
+
 function descriptor<REQ, RESP>(
   method: string,
   requestType: new () => REQ,
@@ -28,11 +42,13 @@ function descriptor<REQ, RESP>(
 }
 
 export class MonitorServiceClient {
-  client_: grpcWeb.GrpcWebClientBase;
+  client_: UnaryClient;
   hostname_: string;
 
   constructor(hostname: string, _credentials?: null, _options?: null) {
-    this.client_ = new grpcWeb.GrpcWebClientBase({ format: "text" });
+    this.client_ = new grpcWeb.GrpcWebClientBase({
+      format: "text",
+    }) as unknown as UnaryClient;
     this.hostname_ = hostname.replace(/\/+$/, "");
   }
 
@@ -40,7 +56,7 @@ export class MonitorServiceClient {
     request: user_pb.CreateMonitorRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.MonitorResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/CreateMonitor",
       request,
       metadata ?? {},
@@ -52,7 +68,7 @@ export class MonitorServiceClient {
     request: user_pb.UpdateMonitorRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.MonitorResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/UpdateMonitor",
       request,
       metadata ?? {},
@@ -64,7 +80,7 @@ export class MonitorServiceClient {
     request: user_pb.GetMonitorRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.MonitorResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetMonitor",
       request,
       metadata ?? {},
@@ -76,7 +92,7 @@ export class MonitorServiceClient {
     request: user_pb.ListMonitorsRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.ListMonitorsResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/ListMonitors",
       request,
       metadata ?? {},
@@ -88,7 +104,7 @@ export class MonitorServiceClient {
     request: user_pb.DeleteMonitorRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.DeleteMonitorResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/DeleteMonitor",
       request,
       metadata ?? {},
@@ -100,7 +116,7 @@ export class MonitorServiceClient {
     request: user_pb.GetStatusPageRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetStatusPageResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetStatusPage",
       request,
       metadata ?? {},
@@ -112,7 +128,7 @@ export class MonitorServiceClient {
     request: user_pb.GetRecentChecksRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetRecentChecksResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetRecentChecks",
       request,
       metadata ?? {},
@@ -124,7 +140,7 @@ export class MonitorServiceClient {
     request: user_pb.GetMonitorHistoryRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetMonitorHistoryResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetMonitorHistory",
       request,
       metadata ?? {},
@@ -136,7 +152,7 @@ export class MonitorServiceClient {
     request: user_pb.GetMonitorInsightRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetMonitorInsightResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetMonitorInsight",
       request,
       metadata ?? {},
@@ -148,7 +164,7 @@ export class MonitorServiceClient {
     request: user_pb.ListIncidentsRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.ListIncidentsResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/ListIncidents",
       request,
       metadata ?? {},

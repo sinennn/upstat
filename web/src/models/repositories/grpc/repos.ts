@@ -1,6 +1,7 @@
 import * as pb from "@/proto/user_pb";
 import type { GatewaySession } from "@/auth/session";
 import type {
+  CheckResult,
   Incident,
   Monitor,
   MonitorHistory,
@@ -12,6 +13,7 @@ import type {
 } from "../..";
 import { ApiError } from "../../errors";
 import {
+  checkFrom,
   historyFrom,
   incidentFrom,
   insightFrom,
@@ -166,16 +168,29 @@ export const monitorsRepo = {
       );
     }),
 
-  /** 90 daily buckets + the 100 most recent checks. */
-  history: (id: string): Promise<MonitorHistory> =>
+  /** 90 daily buckets + the most recent checks (default 100, max 500). */
+  history: (id: string, limit?: number): Promise<MonitorHistory> => {
+    const req = new pb.GetMonitorHistoryRequest().setMonitorId(id);
+    if (limit) req.setLimit(limit);
+    return call(async (md) =>
+      historyFrom(id, await monitorClientFor().getMonitorHistory(req, md)),
+    );
+  },
+
+  /**
+   * GetRecentChecks — newest first. Backs the list sparklines: one cheap
+   * call per monitor instead of a 90-day history aggregation.
+   */
+  recentChecks: (id: string, limit = 30): Promise<CheckResult[]> =>
     call(async (md) =>
-      historyFrom(
-        id,
-        await monitorClientFor().getMonitorHistory(
-          new pb.GetMonitorHistoryRequest().setMonitorId(id),
+      (
+        await monitorClientFor().getRecentChecks(
+          new pb.GetRecentChecksRequest().setMonitorId(id).setLimit(limit),
           md,
-        ),
-      ),
+        )
+      )
+        .getChecksList()
+        .map(checkFrom),
     ),
 
   insight: (id: string): Promise<MonitorInsight | null> =>

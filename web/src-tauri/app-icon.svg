@@ -1,0 +1,22 @@
+<!-- Upstat app icon source. Regenerate icons/ with: npx tauri icon src-tauri/app-icon.svg
+     The bolt is the lucide zap glyph used by BrandMark; colors are the
+     color-bg (#0e1113) and color-brand (#00e09e) design tokens. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2024"/>
+      <stop offset="1" stop-color="#0e1113"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#00e09e" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#00e09e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- macOS icon grid: 824px squircle-ish tile inset 100px -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="185.5" fill="none" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="512" cy="512" r="330" fill="url(#glow)"/>
+  <g transform="translate(512 512) scale(22) translate(-12 -12)">
+    <path fill="#00e09e" d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+  </g>
+</svg>

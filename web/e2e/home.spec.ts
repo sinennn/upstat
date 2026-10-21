@@ -1,244 +1,72 @@
 import { expect, test } from "@playwright/test";
 
-/**
- * W2 landing flow (design.md §8.4): the Part A page renders every section,
- * the A15 FAQ stays single-open, and the CTAs hand off cross-page into the
- * app ("Login" flow → /signin). TEST_MODE: star badge stays neutral, demo
- * panels come from the synthetic seed via the home controller.
- */
+/** The public landing — every section describes what the product does. */
 
-test("home renders every Part A section", async ({ page }) => {
-  // React #418 regression (QA 2026-07-19): the statically prerendered page
-  // must hydrate without page errors — demo data is clock-independent on
-  // the first render.
-  const pageErrors: string[] = [];
-  page.on("pageerror", (err) => pageErrors.push(err.message));
-
+test("renders every section with the product story", async ({ page }) => {
   await page.goto("/");
-
-  // A2 hero — H1 + demo panels
   await expect(
-    page.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
+    page.getByRole("heading", { level: 1, name: /Know the moment/ }),
   ).toBeVisible();
-  await expect(
-    page.getByText("p95 latency — api-common").first(),
-  ).toBeVisible();
-  await expect(
-    page.getByText("api.cuesoft.io heartbeat").first(),
-  ).toBeVisible();
-
-  // A3 pillars ×8
-  await expect(page.locator("#pillars [data-pillar]")).toHaveCount(8);
-
-  // A5 OTel — snippet tabs + ingest flow
-  await expect(
-    page.getByText("Point your OpenTelemetry SDK at us. Done."),
-  ).toBeVisible();
-  await expect(page.getByText("upstat ingest + storage")).toBeVisible();
-
-  // A12 how it works — 3 steps
-  for (const step of [
-    "Point your SDK at us",
-    "Send your first data",
-    "See everything",
+  for (const id of [
+    "how-it-works",
+    "features",
+    "showcase",
+    "architecture",
+    "self-host",
+    "faq",
   ]) {
-    await expect(page.getByText(step)).toBeVisible();
+    await expect(page.locator(`#${id}`), id).toBeAttached();
   }
-
-  // A4 demo band
-  await expect(
-    page.getByText("It looks like this — with your data."),
-  ).toBeVisible();
-  await expect(page.getByText("availability · api-common")).toBeVisible();
-
-  // A11 use-case quads ×4
-  for (const quad of [
-    "Dashboards that stay in sync",
-    "From alert to postmortem",
-    "Status pages people believe",
-    "Analytics without the banner",
+  await expect(page.getByLabel("Upstat dashboard preview")).toBeVisible();
+  // the architecture diagram names the real stack
+  const arch = page.locator("#architecture");
+  for (const part of [
+    "Envoy",
+    "MongoDB",
+    "Insight service",
+    "API + check worker",
   ]) {
-    await expect(page.getByText(quad)).toBeVisible();
+    await expect(arch.getByText(part, { exact: true })).toBeVisible();
   }
-
-  // A6 status embed (also appears in the status-pages quad — scope to #status)
-  await expect(page.getByText("We run on it. Publicly.")).toBeVisible();
-  await expect(
-    page.locator("#status").getByText("All systems operational"),
-  ).toBeVisible();
-
-  // A14 self-host · A9 table · A13 developers · A8 community
-  await expect(page.getByText("Self-host — own your telemetry.")).toBeVisible();
-  await expect(
-    page.getByText("Cloud when you want it. Yours when you need it."),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
-      "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry",
-    ),
-  ).toBeVisible();
-  // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries
-  // the public-status CARD (canvas 225:11191 + pages.md A8) with roadmap +
-  // CueLABS™ links beside it
-  await expect(
-    page.getByText("Discord — #upstat-lab on the CueLABS™ server"),
-  ).toBeVisible();
-  const statusCard = page
-    .locator("#community")
-    .getByRole("link", { name: /Public status — we run upstat on upstat/ });
-  await expect(statusCard).toHaveAttribute("href", "/status/upstat");
-  await expect(statusCard).toContainText("View live →");
-  await expect(
-    page.getByRole("link", {
-      name: "CueLABS™ — more open-source software from Cuesoft →",
-    }),
-  ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
-  // A9 docs deep-link rows (canvas 135:763 + 259:3474): label copy with
-  // hyperlinks, no raw URL strings. The self-host label renders twice —
-  // the A9 row and its A14 twin (164:9388) — both at the ratified GitBook
-  // deployment guide.
-  const selfHostLinks = page.getByRole("link", {
-    name: "Self-host guide — step-by-step deploy docs →",
-  });
-  await expect(selfHostLinks).toHaveCount(2);
-  for (const link of await selfHostLinks.all()) {
-    await expect(link).toHaveAttribute(
-      "href",
-      "https://cuesoft.gitbook.io/upstat/system/deployment",
-    );
-  }
-  await expect(
-    page.getByRole("link", {
-      name: "Query grammar — one grammar across all eight pillars →",
-    }),
-  ).toHaveAttribute(
-    "href",
-    "https://cuesoft.gitbook.io/upstat/system/query-grammar",
-  );
-
-  // A15 FAQ · A16 CTA band · A10 footer
-  await expect(page.getByText("Questions, answered.")).toBeVisible();
-  await expect(page.getByText("OTLP in. Answers out.")).toBeVisible();
-  await expect(
-    page.getByRole("contentinfo").getByText(/CueLABS™ Division/),
-  ).toBeVisible();
-
-  // TEST_MODE: the nav star badge stays neutral — no invented star count
-  const starBadge = page
-    .getByRole("navigation", { name: "Marketing" })
-    .getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" });
-  await expect(starBadge).toBeVisible();
-  await expect(starBadge).toHaveText(/^Star$/);
-
-  expect(pageErrors).toEqual([]);
 });
 
-test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({
+test("nav links the sections, the live status page and the app", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-
   const nav = page.getByRole("navigation", { name: "Marketing" });
   for (const [label, href] of [
-    ["Features", "/#features"], // differentiated 2026-07-19
-    ["Platform", "/#pillars"],
-    ["Docs", "https://cuesoft.gitbook.io/upstat"],
-    // the GitHub item renders as the star badge (canon revision 2026-07-19)
-    [
-      "Star cuesoftinc/upstat on GitHub",
-      "https://github.com/cuesoftinc/upstat",
-    ],
-  ] as const) {
+    ["Features", "/#features"],
+    ["How it works", "/#how-it-works"],
+    ["Architecture", "/#architecture"],
+    ["Live status", "/status/demo"],
+  ]) {
     await expect(nav.getByRole("link", { name: label })).toHaveAttribute(
       "href",
       href,
     );
   }
-  await expect(nav.getByTestId("theme-toggle")).toBeVisible();
   await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
     "href",
     "/signin",
   );
-  await expect(
-    nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true }),
-  ).toBeVisible();
+});
 
-  const footer = page.getByRole("contentinfo"); // panel legends are scoped <footer>s — the landmark is the page footer
-  const columns: [string, [string, string][]][] = [
-    [
-      "Product",
-      [
-        ["Features", "/#features"], // differentiated 2026-07-19
-        ["Try Cloud", "/signin"],
-        ["Self Host", "/#self-host"],
-        ["Platform", "/#pillars"],
-      ],
-    ],
-    [
-      "Docs",
-      [
-        ["Docs", "https://cuesoft.gitbook.io/upstat"],
-        ["Quickstart", "https://cuesoft.gitbook.io/upstat/setup"],
-        [
-          "gRPC reference",
-          "https://github.com/cuesoftinc/upstat/blob/main/api/common/docs/grpc-api.md",
-        ],
-        [
-          "Self-host guide",
-          "https://cuesoft.gitbook.io/upstat/system/deployment",
-        ],
-      ],
-    ],
-    [
-      "Community",
-      [
-        ["GitHub", "https://github.com/cuesoftinc/upstat"],
-        ["Discord", "https://discord.gg/CDfZxxrxbb"],
-        ["Roadmap", "https://cuesoft.gitbook.io/upstat/product/roadmap"],
-        ["CueLABS™", "https://cuelabs.cuesoft.io"],
-      ],
-    ],
-    [
-      "Legal",
-      [
-        ["Privacy", "https://privacy.cuesoft.io"],
-        ["Terms", "https://terms.cuesoft.io"],
-        ["Status", "https://status.cuesoft.io"],
-      ],
-    ],
-  ];
-  for (const [heading, links] of columns) {
-    const column = footer.getByRole("navigation", { name: heading });
-    for (const [label, href] of links) {
-      await expect(column.getByRole("link", { name: label })).toHaveAttribute(
-        "href",
-        href,
-      );
-    }
-  }
-  // legal bar: verbatim line + linked marks + language + security
-  await expect(
-    footer.locator("p", { hasText: "CueLABS™ Division" }),
-  ).toHaveText("© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.");
-  await expect(
-    footer.getByRole("link", { name: "Cuesoft Inc." }),
-  ).toHaveAttribute("href", "https://cuesoft.io");
-  await expect(
-    footer.getByRole("link", { name: "CueLABS™ Division" }),
-  ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
-  await expect(
-    footer.getByRole("link", { name: "MIT License" }),
-  ).toHaveAttribute(
-    "href",
-    "https://github.com/cuesoftinc/upstat/blob/main/LICENSE",
-  );
-  await expect(footer.getByRole("combobox", { name: "Language" })).toHaveValue(
-    "en",
-  );
-  await expect(footer.getByRole("link", { name: "Security" })).toHaveAttribute(
-    "href",
-    "https://github.com/cuesoftinc/upstat/blob/main/SECURITY.md",
-  );
+test("Get started hands off to /signin", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("hero-get-started").click();
+  await page.waitForURL("**/signin");
+});
+
+test("the live status link opens the demo status page", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: /See a live status page/ }).click();
+  await page.waitForURL("**/status/demo");
+  // first visit compiles the route on the dev server
+  await expect(page.getByTestId("status-page")).toBeVisible({
+    timeout: 20_000,
+  });
 });
 
 test("theme toggle cycles light → dark → system and persists (upstat.theme)", async ({
@@ -301,393 +129,45 @@ test("theme toggle cycles light → dark → system and persists (upstat.theme)"
   await expect(html).toHaveAttribute("data-theme", "dark");
 });
 
-test("FAQ is a single-open accordion (A15)", async ({ page }) => {
+test("FAQ is a single-open accordion", async ({ page }) => {
   await page.goto("/");
-  const first = "Does it work with my existing OpenTelemetry setup?";
-  const second = "What are the retention defaults?";
-
-  // first item ships open
   const faq = page.locator("#faq");
-  await faq.scrollIntoViewIfNeeded();
-  await expect(faq.locator("[data-expanded=true]")).toHaveCount(1);
-  await expect(faq.getByText(/Point any OTLP exporter/)).toBeVisible();
-
-  await faq.getByRole("button", { name: second }).click();
-  await expect(
-    faq.getByText(/Retention is configurable per signal/),
-  ).toBeVisible();
-  // still exactly one open — the first closed
-  await expect(faq.locator("[data-expanded=true]")).toHaveCount(1);
-  await expect(faq.getByText(/Point any OTLP exporter/)).toBeHidden();
-
-  // toggling the open item closes it (none open)
-  await faq.getByRole("button", { name: second }).click();
-  await expect(faq.locator("[data-expanded=true]")).toHaveCount(0);
-  await expect(faq.getByRole("button", { name: first })).toBeVisible();
-});
-
-test("CTAs hand off into the app: Try Cloud → /signin (§8.4 cross-page)", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const nav = page.getByRole("navigation", { name: "Marketing" });
-
-  // nav Try Cloud primary CTA (back per the canon revision 2026-07-19)
-  await nav
-    .getByRole("button", { name: "Try Cloud" })
-    .filter({ visible: true })
-    .click();
-  await page.waitForURL("**/signin");
-  await expect(page.getByTestId("signin-screen")).toBeVisible();
-
-  // nav Sign in text link
-  await page.goto("/");
-  await nav.getByRole("link", { name: "Sign in" }).click();
-  await page.waitForURL("**/signin");
-
-  // hero CTA
-  await page.goto("/");
-  await page
-    .getByRole("main")
-    .getByRole("button", { name: "Try Cloud" })
-    .first()
-    .click();
-  await page.waitForURL("**/signin");
-
-  // final CTA band
-  await page.goto("/");
-  await page.getByRole("button", { name: "Try Cloud" }).last().click();
-  await page.waitForURL("**/signin");
-});
-
-test("Self Host CTA scrolls to the self-host section (A14)", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Self Host" }).first().click();
-  await expect(page.locator("#self-host")).toBeInViewport();
-  // the section's guide link points at the REAL GitBook deployment guide —
-  // docs.upstat.cuesoft.io was NXDOMAIN (user-reported dead link 2026-07-19)
-  await expect(
-    page.locator("#self-host").getByRole("link", { name: /Self-host guide/ }),
-  ).toHaveAttribute(
-    "href",
-    "https://cuesoft.gitbook.io/upstat/system/deployment",
-  );
-  // A6: the status link is the in-app public status page, not an invented host
-  await expect(
-    page
-      .locator("#status")
-      .getByRole("link", { name: /our own public status page/ }),
-  ).toHaveAttribute("href", "/status/upstat");
-});
-
-test("home is responsive at 375w (mobile)", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/");
-  await expect(
-    page.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
-  ).toBeVisible();
-  // no horizontal overflow — html AND body (unwrapped <pre> text overflows
-  // body.scrollWidth without moving documentElement.scrollWidth)
-  const overflow = await page.evaluate(() => {
-    const vw = document.documentElement.clientWidth;
-    return (
-      Math.max(
-        document.documentElement.scrollWidth,
-        document.body.scrollWidth,
-      ) - vw
-    );
+  const first = faq.getByRole("button", {
+    name: "How often are my sites checked?",
   });
-  expect(overflow).toBeLessThanOrEqual(0);
-  // pillar grid stacks and stays reachable
-  await page.locator("#pillars").scrollIntoViewIfNeeded();
-  await expect(page.locator("#pillars [data-pillar]")).toHaveCount(8);
-
-  // A9 at mobile (live-QA finding 2026-07-19): the plan table's column CTAs
-  // hide <sm; the grouped CTA pair renders above the compose snippet, and
-  // the snippet wraps before its comment — never mid-comment.
-  const cloudSection = page.getByText(
-    "Cloud when you want it. Yours when you need it.",
-  );
-  await cloudSection.scrollIntoViewIfNeeded();
-  const groupedCtas = page.getByLabel("Cloud or self-host");
-  await expect(
-    groupedCtas.getByRole("button", { name: "Deploy with compose" }),
-  ).toBeVisible();
-  // the table-footer copy of the CTA is display:none at 375
-  await expect(
-    page.locator("tfoot").getByRole("button", { name: "Deploy with compose" }),
-  ).toBeHidden();
+  const second = faq.getByRole("button", { name: "What counts as down?" });
+  await expect(first).toHaveAttribute("aria-expanded", "true");
+  await second.click();
+  await expect(second).toHaveAttribute("aria-expanded", "true");
+  await expect(first).toHaveAttribute("aria-expanded", "false");
 });
 
-// A14 tabbed snippet (Figma 413:2): tab switch is instant with no layout
-// shift, the shared MONGO_URI caption persists in both tab states, copy
-// targets the ACTIVE tab's full two-line block, and the block fits the
-// 1440/390 container canons.
-test("A14 self-host tabs — helm copy + caption persists", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
-  const block = page.getByTestId("selfhost-snippet");
-  await block.scrollIntoViewIfNeeded();
-  const caption = block.getByText(
-    "Compose ships MongoDB; the Helm chart expects yours (MONGO_URI). All 8 pillars come up on :3000.",
-  );
-  await expect(caption).toBeVisible();
-  const tablist = block.getByRole("tablist", { name: "Install method" });
-
-  const before = await block.boundingBox();
-  await tablist.getByRole("tab", { name: "Helm" }).click();
-  await expect(
-    block.getByText("cd upstat && helm install upstat deploy/helm"),
-  ).toBeVisible();
-  await expect(caption).toBeVisible();
-  // no layout shift — mirrored two-line block + always-rendered caption
-  const after = await block.boundingBox();
-  expect(after!.height).toBe(before!.height);
-  expect(after!.width).toBe(before!.width);
-
-  await block.getByRole("button", { name: "Copy snippet" }).click();
-  const clip = await page.evaluate(() => navigator.clipboard.readText());
-  expect(clip).toBe(
-    "git clone https://github.com/cuesoftinc/upstat\ncd upstat && helm install upstat deploy/helm",
-  );
-
-  // 390 canon: block inside the viewport, no document overflow
-  await page.setViewportSize({ width: 390, height: 844 });
-  await block.scrollIntoViewIfNeeded();
-  await expect(caption).toBeVisible();
-  const mobile = await block.boundingBox();
-  expect(mobile!.width).toBeLessThanOrEqual(390);
-  const mobileOverflow = await page.evaluate(
-    () =>
-      Math.max(
-        document.documentElement.scrollWidth,
-        document.body.scrollWidth,
-      ) - document.documentElement.clientWidth,
-  );
-  expect(mobileOverflow).toBeLessThanOrEqual(0);
-});
-
-test("enabled controls carry the pointer cursor (Directive 2026-07-19)", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const nav = page.getByRole("navigation", { name: "Marketing" });
-  const cursorOf = (locator: ReturnType<typeof page.locator>) =>
-    locator.evaluate((el) => getComputedStyle(el).cursor);
-  // a rendered button — the base-layer rule, not a per-component class
-  expect(
-    await cursorOf(
-      nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true }),
-    ),
-  ).toBe("pointer");
-  // a nav link — links keep the native pointer
-  expect(await cursorOf(nav.getByRole("link", { name: "Docs" }))).toBe(
-    "pointer",
-  );
-});
-
-test("A1 Features pillar-map dropdown — hover/click open, Escape, deep links", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const nav = page.getByRole("navigation", { name: "Marketing" });
-  const chevron = nav.getByRole("button", { name: "Features pillar map" });
-  const panel = nav.getByTestId("features-dropdown");
-
-  // closed by default; the canonical Features link is untouched
-  await expect(chevron).toHaveAttribute("aria-expanded", "false");
-  await expect(panel).toBeHidden();
-  await expect(nav.getByRole("link", { name: "Features" })).toHaveAttribute(
-    "href",
-    "/#features",
-  );
-
-  // hover opens the mini feature map ×8 (retry while React hydrates)
-  await expect(async () => {
-    await nav.getByTestId("features-nav-item").hover();
-    await expect(panel).toBeVisible({ timeout: 1_000 });
-  }).toPass({ timeout: 15_000 });
-  await expect(panel.getByRole("link")).toHaveCount(8);
-  // Figma dropdown-open copy: pillar 2 renders the shortened label
-  await expect(
-    panel.getByRole("link", { name: "Analytics / RUM" }),
-  ).toBeVisible();
-
-  // the panel stays fully inside the viewport (floating-layer canon)
-  const box = (await panel.boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(1280);
-
-  // pointer away → closes after the grace delay
-  await page.mouse.move(640, 400);
-  await expect(panel).toBeHidden();
-
-  // keyboard: the chevron toggles (pointer clicks ride the hover-open,
-  // so keyboard is the pure toggle path); Escape closes, restores focus
-  await chevron.focus();
-  await page.keyboard.press("Enter");
-  await expect(panel).toBeVisible();
-  await expect(chevron).toHaveAttribute("aria-expanded", "true");
-  await page.keyboard.press("Escape");
-  await expect(panel).toBeHidden();
-  await expect(chevron).toBeFocused();
-
-  // a pillar row deep-links its card on the landing grid and closes
-  await nav.getByTestId("features-nav-item").hover();
-  await expect(panel).toBeVisible();
-  await panel.getByRole("link", { name: "Logs" }).click();
-  await expect(panel).toBeHidden();
-  await expect(page).toHaveURL(/#pillar-4$/);
-  await expect(page.locator("#pillar-4")).toBeInViewport();
-});
-
-test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", async ({
-  page,
-}) => {
+test("mobile nav is a menu-button disclosure at 390w", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-
   const nav = page.getByRole("navigation", { name: "Marketing" });
-  const menuButton = nav.getByRole("button", { name: "Menu" });
-  const panel = nav.locator("#marketing-menu");
-
-  // closed by default; the trigger advertises its state
-  await expect(menuButton).toBeVisible();
-  await expect(menuButton).toHaveAttribute("aria-expanded", "false");
-  await expect(panel).toBeHidden();
-
-  // [Revised 2026-07-19] the bar keeps the Try Cloud CTA beside the
-  // hamburger at every viewport — visible and inside the viewport at 390
-  const barCta = nav
-    .getByRole("button", { name: "Try Cloud" })
-    .filter({ visible: true });
-  await expect(barCta).toBeVisible();
-  const ctaBox = (await barCta.boundingBox())!;
-  expect(ctaBox.x).toBeGreaterThanOrEqual(0);
-  expect(ctaBox.x + ctaBox.width).toBeLessThanOrEqual(390);
-
-  // open — retry until React's handler is attached (dev hydrates slowly)
-  await expect(async () => {
-    await menuButton.click();
-    await expect(panel).toBeVisible({ timeout: 1_000 });
-  }).toPass({ timeout: 15_000 });
-  await expect(menuButton).toHaveAttribute("aria-expanded", "true");
-
-  // the panel never overflows the viewport (floating-layer collision sweep)
-  const panelBox = (await panel.boundingBox())!;
-  expect(panelBox.x).toBeGreaterThanOrEqual(0);
-  expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(390);
-
-  // every canonical link is reachable from the panel — no dead ends <md
-  for (const [label, href] of [
-    ["Features", "/#features"], // differentiated 2026-07-19
-    ["Platform", "/#pillars"],
-    ["Docs", "https://cuesoft.gitbook.io/upstat"],
-    // the GitHub item renders as the star badge (canon revision 2026-07-19)
-    [
-      "Star cuesoftinc/upstat on GitHub",
-      "https://github.com/cuesoftinc/upstat",
-    ],
-  ] as const) {
-    const link = panel.getByRole("link", { name: label });
-    await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", href);
-  }
-
-  // the panel GitHub item is the SAME star badge as desktop — glyph +
-  // "Star" (+ live count when one arrives; neutral in TEST_MODE)
-  const panelBadge = panel.getByRole("link", {
-    name: "Star cuesoftinc/upstat on GitHub",
-  });
-  await expect(panelBadge).toHaveText(/^Star$/);
-  await expect(panelBadge.locator("svg")).toBeVisible();
-
-  // the theme toggle works from inside the panel (dark default → system
-  // resolves light under the emulated light OS)
-  await page.emulateMedia({ colorScheme: "light" });
-  await panel.getByTestId("theme-toggle").click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-
-  // Sign in text link is present; Try Cloud lives in the bar, NOT the
-  // panel ([Revised 2026-07-19] — no duplication), and hands off to the app
-  await expect(panel.getByRole("link", { name: "Sign in" })).toHaveAttribute(
-    "href",
-    "/signin",
-  );
-  await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(0);
-  await barCta.click();
-  await page.waitForURL("**/signin");
+  const menu = nav.getByRole("button", { name: "Menu" });
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    nav.locator("#marketing-menu").getByRole("link", { name: "Live status" }),
+  ).toBeVisible();
 });
 
-// Type contract — the landing's key roles render the Figma Home frame's
-// (135:2) computed type (fleet font-weight audit 2026-07-20): Display/44
-// Semi Bold hero, 28/600 section headings, 16/600 pillar titles, and the
-// fleet font-smoothing standard (grayscale antialiasing — Figma rasterizes
-// grayscale; subpixel reads heavier than the approved canvas).
-test.describe("type contract — Figma Home frame roles", () => {
-  test("per-role computed family/weight/size and smoothing match", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1440, height: 1200 });
-    await page.goto("/");
-
-    const roles = [
-      {
-        role: "hero H1 (Display/44 Semi Bold)",
-        locator: page.getByRole("heading", { level: 1 }),
-        family: /^Inter\b/,
-        weight: "600",
-        size: "44px",
-      },
-      {
-        role: "pillars heading (28 Semi Bold)",
-        locator: page.getByRole("heading", {
-          name: "Eight pillars. One query grammar.",
-        }),
-        family: /^Inter\b/,
-        weight: "600",
-        size: "28px",
-      },
-      {
-        role: "pillar title (16 Semi Bold)",
-        locator: page
-          .getByRole("link", { name: /Uptime & Synthetics/ })
-          .getByText("Uptime & Synthetics"),
-        family: /^Inter\b/,
-        weight: "600",
-        size: "16px",
-      },
-      {
-        role: "query value (Mono 28 Regular)",
-        locator: page.getByText("99.98%", { exact: true }).first(),
-        family: /^"?JetBrains Mono\b/,
-        weight: "400",
-        size: "28px",
-      },
-    ] as const;
-
-    for (const r of roles) {
-      const cs = await r.locator.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return {
-          fontFamily: s.fontFamily,
-          fontWeight: s.fontWeight,
-          fontSize: s.fontSize,
-          webkitFontSmoothing: s.getPropertyValue("-webkit-font-smoothing"),
-        };
-      });
-      expect.soft(cs.fontFamily, `${r.role} family`).toMatch(r.family);
-      expect.soft(cs.fontWeight, `${r.role} weight`).toBe(r.weight);
-      expect.soft(cs.fontSize, `${r.role} size`).toBe(r.size);
-      expect
-        .soft(cs.webkitFontSmoothing, `${r.role} smoothing`)
-        .toBe("antialiased");
-    }
-  });
+test("hero and section headings use the type scale", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1200 });
+  await page.goto("/");
+  const style = (name: RegExp | string, level: number) =>
+    page.getByRole("heading", { level, name }).evaluate((el) => {
+      const s = getComputedStyle(el);
+      return [s.fontFamily, s.fontWeight, s.fontSize];
+    });
+  const [family, weight, size] = await style(/Know the moment/, 1);
+  expect(family).toMatch(/^Inter\b/);
+  expect(weight).toBe("600");
+  expect(size).toBe("52px");
+  const [, h2Weight, h2Size] = await style("How it's built", 2);
+  expect(h2Weight).toBe("600");
+  expect(h2Size).toBe("28px");
 });

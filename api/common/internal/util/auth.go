@@ -12,6 +12,12 @@ import (
 
 type contextKey string
 
+// ServiceUserID is the subject of the internal service token minted by
+// cmd/make_service_token. The insight service calls back into
+// MonitorService with it to read a monitor and its incident context, which
+// owner-scoped lookups would otherwise refuse.
+const ServiceUserID = "service-observability"
+
 const (
 	userIDContextKey contextKey = "userId"
 	emailContextKey  contextKey = "email"

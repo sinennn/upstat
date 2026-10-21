@@ -5,10 +5,14 @@ import { useRequest } from "./use-request";
 
 /** /status/[slug] — public, unauthenticated. */
 export function useStatusPageController(slug: string) {
-  return useRequest(() => statusRepo.bySlug(slug), [slug]);
+  return useRequest(() => statusRepo.bySlug(slug), [slug], {
+    refreshMs: 30_000,
+  });
 }
 
 /** /status/owner/[ownerId] — every account's page, addressed by user id. */
 export function useOwnerStatusPageController(ownerId: string) {
-  return useRequest(() => statusRepo.byOwner(ownerId), [ownerId]);
+  return useRequest(() => statusRepo.byOwner(ownerId), [ownerId], {
+    refreshMs: 30_000,
+  });
 }

@@ -6,7 +6,9 @@
  */
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/ui/Toast";
+import { notifyNative } from "@/desktop/bridge";
 import { getAuthProvider, type AuthUser } from "@/auth";
 import { incidentsRepo } from "@/models/repositories";
 import { useRequest } from "./use-request";
@@ -72,10 +74,51 @@ export function useShellController() {
   }, [user, router]);
 
   const incidents = useRequest(
-    () => (user ? incidentsRepo.list() : Promise.resolve([])),
+    // null (not []) before the session is read, so the alert baseline
+    // below is only ever taken from a real incident list
+    () => (user ? incidentsRepo.list() : Promise.resolve(null)),
     [user?.id ?? null],
+    { refreshMs: 10_000 },
   );
   const active = (incidents.data ?? []).filter((i) => i.status === "active");
+
+  // Announce incidents opening/resolving between polls, on whatever page
+  // is open. The first load only establishes the baseline.
+  const toast = useToast();
+  const seen = useRef<Map<string, string> | null>(null);
+  useEffect(() => {
+    const list = incidents.data;
+    if (!list) return;
+    const prev = seen.current;
+    seen.current = new Map(list.map((i) => [i.id, i.status]));
+    if (!prev) return;
+    for (const i of list) {
+      const was = prev.get(i.id);
+      const name = i.monitor_name ?? "A monitor";
+      // in-page toast everywhere; a native OS notification in the desktop
+      // app (it fires even when the window is in the background)
+      if (i.status === "active" && was === undefined) {
+        const title = `${name} is down`;
+        toast({ kind: "crit", title, body: i.failure_reason });
+        void notifyNative(title, i.failure_reason);
+      } else if (i.status === "resolved" && was === "active") {
+        const title = `${name} recovered`;
+        const body =
+          i.duration_seconds === null
+            ? undefined
+            : `Down for ${durationLabel(i.duration_seconds)}.`;
+        toast({ kind: "ok", title, body });
+        void notifyNative(title, body);
+      }
+    }
+  }, [incidents.data, toast]);
+
+  // the tab title carries the outage count — visible from any tab
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+ down\) /, "");
+    document.title =
+      active.length > 0 ? `(${active.length} down) ${base}` : base;
+  }, [active.length]);
 
   const signOut = useCallback(async () => {
     await getAuthProvider().signOut();

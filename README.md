@@ -80,7 +80,7 @@ function (never by its language).
 
 ```bash
 cp .env.example .env
-make up      # build + start mongo, api-common (:8080), api-observability (:8081), envoy (:8082), web (:3000)
+make up      # build + start mongo, api-common (:2000), api-observability (:2001), envoy (:2002), web (:2003)
 make logs    # follow logs
 make down    # stop
 ```

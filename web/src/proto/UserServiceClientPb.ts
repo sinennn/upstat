@@ -12,6 +12,20 @@ import * as user_pb from "./user_pb";
 
 const PREFIX = "/proto.UserService";
 
+/**
+ * grpc-web 2.x exposes the promise-returning unary call as `unaryCall` at
+ * runtime; its bundled typings still declare `thenableCall`, which does not
+ * exist on the object (calling it throws). Type the real method here.
+ */
+interface UnaryClient {
+  unaryCall<REQ, RESP>(
+    method: string,
+    request: REQ,
+    metadata: grpcWeb.Metadata,
+    descriptor: grpcWeb.MethodDescriptor<REQ, RESP>,
+  ): Promise<RESP>;
+}
+
 function descriptor<REQ, RESP>(
   method: string,
   requestType: new () => REQ,
@@ -28,11 +42,13 @@ function descriptor<REQ, RESP>(
 }
 
 export class UserServiceClient {
-  client_: grpcWeb.GrpcWebClientBase;
+  client_: UnaryClient;
   hostname_: string;
 
   constructor(hostname: string, _credentials?: null, _options?: null) {
-    this.client_ = new grpcWeb.GrpcWebClientBase({ format: "text" });
+    this.client_ = new grpcWeb.GrpcWebClientBase({
+      format: "text",
+    }) as unknown as UnaryClient;
     this.hostname_ = hostname.replace(/\/+$/, "");
   }
 
@@ -40,7 +56,7 @@ export class UserServiceClient {
     request: user_pb.GetUserRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetUserResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetUser",
       request,
       metadata ?? {},
@@ -52,7 +68,7 @@ export class UserServiceClient {
     request: user_pb.GoogleAuthRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetUserResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GoogleAuth",
       request,
       metadata ?? {},
@@ -64,7 +80,7 @@ export class UserServiceClient {
     request: user_pb.CreateUserRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.CreateUserResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/CreateUser",
       request,
       metadata ?? {},
@@ -76,7 +92,7 @@ export class UserServiceClient {
     request: user_pb.UpdateUserRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.UpdateUserResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/UpdateUser",
       request,
       metadata ?? {},
@@ -88,7 +104,7 @@ export class UserServiceClient {
     request: user_pb.DeleteUserRequest,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.DeleteUserResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/DeleteUser",
       request,
       metadata ?? {},
@@ -100,7 +116,7 @@ export class UserServiceClient {
     request: user_pb.Empty,
     metadata?: grpcWeb.Metadata,
   ): Promise<user_pb.GetAllUsersResponse> {
-    return this.client_.thenableCall(
+    return this.client_.unaryCall(
       this.hostname_ + PREFIX + "/GetAllUsers",
       request,
       metadata ?? {},

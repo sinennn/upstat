@@ -174,3 +174,55 @@ func TestUpdateMonitor_PersistsEditableFields(t *testing.T) {
 		t.Fatalf("expected cross-owner update to fail")
 	}
 }
+
+// TestCreateIncident_DefaultsStartedAt pins the worker's call shape: it opens
+// incidents without a StartedAt, so the repository must stamp one — otherwise
+// the stored zero time renders as year 1 and resolve durations explode.
+func TestCreateIncident_DefaultsStartedAt(t *testing.T) {
+	resetCollections(t)
+	monitor := createTestMonitor(t)
+	repo := repository.NewIncidentRepository(testDB)
+
+	before := time.Now().Add(-time.Second)
+	created, err := repo.CreateIncident(&model.Incident{
+		MonitorID: monitor.Id.Hex(),
+		Title:     monitor.Name + " is down",
+		Status:    "active",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if created.StartedAt.Before(before) {
+		t.Fatalf("StartedAt not stamped: %v", created.StartedAt)
+	}
+
+	resolved, err := repo.ResolveActiveIncidents(monitor.Id)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resolved == nil || resolved.DurationSeconds < 0 || resolved.DurationSeconds > 60 {
+		t.Fatalf("expected a short duration, got %+v", resolved)
+	}
+}
+
+// TestListRecentByMonitor_HonoursServiceMaximum guards the 500-row maximum
+// GetMonitorHistory documents (the repository used to clamp to 100).
+func TestListRecentByMonitor_HonoursServiceMaximum(t *testing.T) {
+	resetCollections(t)
+	monitor := createTestMonitor(t)
+	repo := repository.NewCheckResultRepository(testDB)
+	for i := 0; i < 150; i++ {
+		if _, err := repo.CreateCheckResult(model.CheckResults{
+			MonitorID: monitor.Id.Hex(), CheckedAt: time.Now(), Status: "up", StatusCode: 200,
+		}); err != nil {
+			t.Fatalf("seed: %v", err)
+		}
+	}
+	got, err := repo.ListRecentByMonitor(monitor.Id.Hex(), 500)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got) != 150 {
+		t.Fatalf("want all 150 checks, got %d", len(got))
+	}
+}

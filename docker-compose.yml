@@ -2,8 +2,12 @@
 # Usage: cp .env.example .env  &&  make up
 #
 # Service wiring:
-#   api-common (Go)          gRPC + HTTP /health on :8080 (h2c), MongoDB, monitor worker
-#   api-observability (Py)   FastAPI /health on :8081, internal gRPC on :50051, ML insights
+#   api-common (Go)          gRPC + HTTP /health on :2000 (h2c), MongoDB, monitor worker
+#   api-observability (Py)   FastAPI /health on :2001, internal gRPC on :50051, ML insights
+#   envoy                    gRPC-Web for the browser/desktop app on :2002
+#   web (Next.js)            http://localhost:2003
+#   Host ports live in the 2000s so they do not collide with other local
+#   projects (3000/808x are common); containers keep their usual internal ports.
 #   The two call each other over gRPC on the compose network (lazy clients), so
 #   neither hard-depends on the other — both only wait for mongo.
 services:
@@ -23,15 +27,20 @@ services:
     build: ./api/common
     image: cuesoft/upstat-api-common:latest
     ports:
-      - "8080:8080"
+      - "2000:8080"
     environment:
       PORT: "8080"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      BASE_URL: ${BASE_URL:-http://localhost:8080/}
+      BASE_URL: ${BASE_URL:-http://localhost:2000/}
       INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
+      EMAILJS_SERVICE_ID: ${EMAILJS_SERVICE_ID:-}
+      EMAILJS_TEMPLATE_ID: ${EMAILJS_TEMPLATE_ID:-}
+      EMAILJS_PUBLIC_KEY: ${EMAILJS_PUBLIC_KEY:-}
+      EMAILJS_PRIVATE_KEY: ${EMAILJS_PRIVATE_KEY:-}
+      APP_URL: ${APP_URL:-http://localhost:2003}
     depends_on:
       mongo:
         condition: service_healthy
@@ -41,7 +50,7 @@ services:
     build: ./api/observability
     image: cuesoft/upstat-api-observability:latest
     ports:
-      - "8081:8081"
+      - "2001:8081"
     environment:
       PORT: "8081"
       MONGO_URI: mongodb://mongo:27017
@@ -57,13 +66,13 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # gRPC-Web proxy: browser gRPC-Web (:8082 on the host) -> native gRPC (api-common:8080).
+  # gRPC-Web proxy: browser gRPC-Web (:2002 on the host) -> native gRPC (api-common:8080).
   envoy:
     image: envoyproxy/envoy:v1.31.5
     volumes:
       - ./deploy/helm/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     ports:
-      - "8082:8081"
+      - "2002:8081"
     depends_on:
       api-common:
         condition: service_healthy
@@ -77,10 +86,11 @@ services:
       dockerfile: web/Dockerfile
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
-        NEXT_PUBLIC_ENVOY_URL: ${NEXT_PUBLIC_ENVOY_URL:-http://localhost:8082}
+        NEXT_PUBLIC_ENVOY_URL: ${NEXT_PUBLIC_ENVOY_URL:-http://localhost:2002}
+        NEXT_PUBLIC_WEB_URL: ${NEXT_PUBLIC_WEB_URL:-http://localhost:2003}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     ports:
-      - "3000:3000"
+      - "2003:3000"
     depends_on:
       api-common:
         condition: service_healthy

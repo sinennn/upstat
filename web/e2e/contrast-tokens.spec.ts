@@ -227,7 +227,7 @@ async function renderedRatio(el: Locator): Promise<Rendered> {
 test("public status page pills render ≥4.5:1 in both themes (served pages)", async ({
   page,
 }) => {
-  await page.goto("/status/upstat");
+  await page.goto("/status/demo");
   const pills = page.locator("span[data-status]");
   await pills.first().waitFor({ state: "visible", timeout: 15_000 });
 
@@ -263,7 +263,7 @@ test("incident status chips render ≥4.5:1 in dark theme (served pages)", async
     document.documentElement.setAttribute("data-theme", "dark"),
   );
 
-  const chips = page.locator("[data-testid^='incident-'] > span:first-child");
+  const chips = page.locator("[data-testid^='incident-'] [data-chip]");
   await chips.first().waitFor({ state: "visible", timeout: 15_000 });
   const count = await chips.count();
   expect(count, "incidents page renders status chips").toBeGreaterThan(0);

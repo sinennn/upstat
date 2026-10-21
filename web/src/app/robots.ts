@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// fully static (the desktop build is a static export)
+export const dynamic = "force-static";
+
 /**
  * Crawl policy (SEO plumbing, fleet canon): the public marketing surface
  * (incl. /status/*) is crawlable; the authed app shell and API routes are

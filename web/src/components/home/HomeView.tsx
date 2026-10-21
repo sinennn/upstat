@@ -1,92 +1,41 @@
 "use client";
 
 /**
- * / — public home (pages.md Part A, Figma landing v2 frame 135:2).
- * Composition root: nav → A2 hero → A3 pillars → A5 OTel → A12 how-it-works
- * → A4 demo band → A11 use-cases → A6 status embed → A14 self-host →
- * A9 cloud-vs-self-host → A13 developers → A8 community → A15 FAQ →
- * A16 final CTA → A10 footer. Views render-only — all data + handlers come
- * from the home controller.
+ * / — the public landing. Every section describes what the product
+ * actually does today; the previews are built from the app's own
+ * components fed illustration data (controllers/home.ts).
  */
 
 import { MarketingFooter } from "@/components/ui/MarketingFooter";
 import { MarketingNav } from "@/components/ui/MarketingNav";
 import { useHomeController } from "@/controllers/home";
 import {
-  CloudSelfHostSection,
-  CommunitySection,
-  DevelopersSection,
+  ArchitectureSection,
   FaqSection,
+  FeaturesSection,
   FinalCtaSection,
-  SelfHostSection,
-} from "./sections-bottom";
-import {
-  DemoBandSection,
-  StatusEmbedSection,
-  UseCasesSection,
-} from "./sections-demo";
-import {
   HeroSection,
   HowItWorksSection,
-  OtelSection,
-  PillarsSection,
-} from "./sections-top";
+  SelfHostSection,
+  ShowcaseSection,
+} from "./sections";
 
 export function HomeView() {
-  const { stars, demo, heroCursor, onSignIn, onTryCloud, onSelfHost } =
-    useHomeController();
+  const { stars, demo, onGetStarted } = useHomeController();
 
   return (
     <div className="font-ui min-h-screen bg-bg text-text">
-      <MarketingNav
-        starCount={stars}
-        onSignIn={onSignIn}
-        onTryCloud={onTryCloud}
-      />
-
+      <MarketingNav starCount={stars} onTryCloud={onGetStarted} />
       <main>
-        <HeroSection
-          series={demo.latencySeries}
-          query={demo.latencyQuery}
-          heartbeat={demo.heartbeat}
-          cursor={heroCursor}
-          onTryCloud={onTryCloud}
-          onSelfHost={onSelfHost}
-        />
-        <PillarsSection />
-        <OtelSection />
-        <HowItWorksSection series={demo.latencySeries} />
-        <DemoBandSection
-          series={demo.latencySeries}
-          query={demo.latencyQuery}
-          heartbeat={demo.heartbeatAllUp}
-          availabilitySparkline={demo.availabilitySparkline}
-          latencySparkline={demo.latencySparkline}
-        />
-        <UseCasesSection
-          series={demo.latencySeries}
-          query={demo.latencyQuery}
-          alertRule={demo.alertRule}
-          incidentUpdate={demo.incidentUpdate}
-          statusRow={demo.statusRows[0]}
-          statusUpdatedAt={demo.statusUpdatedAt}
-          visitorsSparkline={demo.visitorsSparkline}
-          lcpSparkline={demo.lcpSparkline}
-        />
-        <StatusEmbedSection
-          rows={demo.statusRows}
-          updatedAt={demo.statusUpdatedAt}
-        />
+        <HeroSection demo={demo} onGetStarted={onGetStarted} />
+        <HowItWorksSection />
+        <FeaturesSection />
+        <ShowcaseSection demo={demo} />
+        <ArchitectureSection />
         <SelfHostSection />
-        <CloudSelfHostSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
-        <DevelopersSection />
-        <CommunitySection />
         <FaqSection />
-        <FinalCtaSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
+        <FinalCtaSection onGetStarted={onGetStarted} />
       </main>
-
-      {/* A10 footer — the canonical parity shape (brand block + 4 columns +
-          legal bar) is the component default (SKILL.md canon 2026-07-19) */}
       <MarketingFooter />
     </div>
   );

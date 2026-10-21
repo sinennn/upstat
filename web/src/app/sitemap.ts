@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// fully static (the desktop build is a static export)
+export const dynamic = "force-static";
+
 /**
  * Public marketing surface only (SEO plumbing, fleet canon): the home
  * page and upstat's own public status page (the dogfood instance — live 200 unauthenticated). Auth (/signin)
@@ -11,6 +14,6 @@ const BASE = "https://upstat.cuesoft.io";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: BASE, changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE}/status/upstat`, changeFrequency: "daily", priority: 0.5 },
+    { url: `${BASE}/status/demo`, changeFrequency: "daily", priority: 0.5 },
   ];
 }

@@ -15,6 +15,9 @@ import (
 type MonitorRepository interface {
 	CreateMonitor(monitor model.Monitor) (*model.Monitor, error)
 	GetMonitor(id string, ownerID string) (*model.Monitor, error)
+	// GetMonitorByID skips owner scoping — for the internal service
+	// principal only (see util.ServiceUserID).
+	GetMonitorByID(id string) (*model.Monitor, error)
 	ListMonitors(ownerId string) ([]*model.Monitor, error)
 	ListActiveMonitors() ([]*model.Monitor, error)
 	UpdateMonitor(id string, ownerID string, monitor model.Monitor) (*model.Monitor, error)
@@ -139,6 +142,23 @@ func (db *monitorRepository) DeleteMonitor(id string, ownerId string) (*mongo.De
 	}
 
 	return deleteResult, nil
+}
+
+func (db *monitorRepository) GetMonitorByID(id string) (*model.Monitor, error) {
+	collection := monitorCollection(db.connection)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var monitor model.Monitor
+	if err := collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&monitor); err != nil {
+		return nil, err
+	}
+	return &monitor, nil
 }
 
 func (db *monitorRepository) GetMonitor(id string, ownerID string) (*model.Monitor, error) {

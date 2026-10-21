@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// fully static (the desktop build is a static export)
+export const dynamic = "force-static";
+
 /**
  * Web app manifest (App Router file convention — served at
  * /manifest.webmanifest and linked from every route's <head>).
@@ -13,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Upstat",
     short_name: "Upstat",
-    description: "All your telemetry. One open platform.",
+    description: "Uptime monitoring, incidents and status pages.",
     start_url: "/",
     display: "standalone",
     background_color: "#0e1113", // --color-bg (dark canvas)

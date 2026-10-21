@@ -53,9 +53,20 @@ Google button skips the Google popup. Seed: `ibukun@cuesoft.io` /
 backend's `GOOGLE_CLIENT_ID`; register `<origin>/signin/callback` as an
 authorized redirect URI), `NEXT_PUBLIC_TEST_MODE`.
 
-The marketing landing (`/`) is unchanged and still describes the broader
-product vision; its demo panels are illustration data
-(`controllers/home-demo.ts`, `components/home/demo-types.ts`).
+**Live.** Dashboard requests refresh in the background every 10s
+(`useRequest(…, { refreshMs })`, paused while the tab is hidden). The
+shell diffs the incident list between polls and raises a toast when an
+incident opens or resolves; the tab title carries the open count.
+
+**Landing (`/`).** Rewritten to describe only what ships: hero with a
+product preview built from the app's own components, how it works,
+features, a status-page/insight showcase, the architecture diagram,
+self-hosting, FAQ. Preview data is illustrative (`controllers/home.ts`,
+`controllers/home-demo.ts`).
+
+**Demo.** `make demo` starts the stack, mints the insight service token and
+runs `cmd/seed -backfill` (demo account, real monitors, 90 days of
+synthetic history, status page `/status/demo`). See [demo.md](demo.md).
 
 ## 1. The standard (ecosystem, shared across the three products)
 

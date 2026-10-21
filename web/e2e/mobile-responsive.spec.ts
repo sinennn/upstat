@@ -31,13 +31,13 @@ test("viewport meta never disables pinch-zoom", async ({ page }) => {
 const ROUTES = [
   "/",
   "/signin",
-  "/status/upstat",
+  "/status/demo",
   "/dashboard",
   "/dashboard/monitors/new",
-  "/dashboard/monitors/65f0a1b20000000000000002",
-  "/dashboard/monitors/65f0a1b20000000000000002/edit",
+  "/dashboard/monitors/view?id=65f0a1b20000000000000002",
+  "/dashboard/monitors/edit?id=65f0a1b20000000000000002",
   "/dashboard/incidents",
-  "/dashboard/incidents/65f0a1b20000000000000003",
+  "/dashboard/incidents/view?id=65f0a1b20000000000000003",
   "/dashboard/settings",
 ];
 
@@ -151,7 +151,7 @@ async function signIn(page: Page) {
 }
 
 function slug(route: string): string {
-  return route === "/" ? "home" : route.slice(1).replace(/\//g, "-");
+  return route === "/" ? "home" : route.slice(1).replace(/[/?=]/g, "-");
 }
 
 async function shoot(
@@ -230,7 +230,7 @@ test.describe("expanded rail — dashboard content reflows", () => {
       // densest layouts, both rail states, for the visual record
       for (const route of [
         "/dashboard",
-        "/dashboard/monitors/65f0a1b20000000000000002",
+        "/dashboard/monitors/view?id=65f0a1b20000000000000002",
       ]) {
         await open(page, route);
         await page.screenshot({

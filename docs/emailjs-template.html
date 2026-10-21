@@ -1,0 +1,42 @@
+<!--
+  EmailJS template for Upstat downtime / recovery alerts.
+  Paste into EmailJS → Email Templates → (your template) → Content → "Edit content" → code view.
+
+  Template settings:
+    Subject:   {{subject}}
+    To Email:  {{to_email}}
+    From Name: Upstat
+
+  Variables sent by api/common (internal/service/emailjs_notifier.go):
+    to_email, to_name, subject, status (DOWN | RESOLVED), message,
+    monitor_name, monitor_url, failure_reason, duration, occurred_at, incident_url
+-->
+<div style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:#f4f5f7; padding:32px 12px;">
+  <div style="max-width:520px; margin:0 auto; background:#ffffff; border:1px solid #e3e5e8; border-radius:12px; overflow:hidden;">
+    <div style="padding:20px 24px; border-bottom:1px solid #e3e5e8; font-weight:600; font-size:16px; color:#111;">
+      ● Upstat
+    </div>
+    <div style="padding:24px;">
+      <p style="margin:0 0 8px; font-size:12px; letter-spacing:.08em; font-weight:700; color:#6b7280;">
+        STATUS: {{status}}
+      </p>
+      <h1 style="margin:0 0 12px; font-size:22px; line-height:1.3; color:#111;">{{subject}}</h1>
+      <p style="margin:0 0 20px; font-size:15px; line-height:1.55; color:#374151;">Hi {{to_name}}, {{message}}</p>
+
+      <table style="width:100%; border-collapse:collapse; font-size:14px; color:#374151;">
+        <tr><td style="padding:8px 0; color:#6b7280; width:130px;">Monitor</td><td style="padding:8px 0; font-weight:600;">{{monitor_name}}</td></tr>
+        <tr><td style="padding:8px 0; color:#6b7280;">Target</td><td style="padding:8px 0;">{{monitor_url}}</td></tr>
+        <tr><td style="padding:8px 0; color:#6b7280;">Reason</td><td style="padding:8px 0;">{{failure_reason}}</td></tr>
+        <tr><td style="padding:8px 0; color:#6b7280;">Downtime</td><td style="padding:8px 0;">{{duration}}</td></tr>
+        <tr><td style="padding:8px 0; color:#6b7280;">When</td><td style="padding:8px 0;">{{occurred_at}}</td></tr>
+      </table>
+
+      <a href="{{incident_url}}" style="display:inline-block; margin-top:24px; background:#4f46e5; color:#ffffff; text-decoration:none; padding:11px 18px; border-radius:8px; font-weight:600; font-size:14px;">
+        View incident
+      </a>
+    </div>
+    <div style="padding:16px 24px; border-top:1px solid #e3e5e8; font-size:12px; color:#9ca3af;">
+      You're receiving this because you own this monitor. Mute it in Upstat to stop alerts.
+    </div>
+  </div>
+</div>

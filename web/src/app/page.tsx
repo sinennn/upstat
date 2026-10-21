@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { HomeView } from "@/components/home/HomeView";
+import { DesktopEntry } from "@/components/desktop/DesktopEntry";
+import { env } from "@/config/env";
 
 /**
- * / — public home (pages.md Part A; Figma landing v2 frame 135:2, W2).
- * Server shell carries the route metadata; the view is client-composed
- * from the registry via the home controller.
+ * / — the public landing. In the desktop app there is no marketing page:
+ * it goes straight to the dashboard (which redirects to /signin without a
+ * session).
  */
 
-const TITLE = "Upstat — all your telemetry, one open platform";
+const TITLE = "Upstat — know the moment your site goes down";
 const DESCRIPTION =
-  "Uptime, RUM, metrics, logs, traces, dashboards, alerts, SLOs and status pages — one open-source platform, OTel-native and ClickHouse-fast.";
+  "Open-source uptime monitoring: HTTP checks with retries, automatic incidents, public status pages and AI risk insight.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -29,5 +31,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <HomeView />;
+  return env.desktop ? <DesktopEntry /> : <HomeView />;
 }

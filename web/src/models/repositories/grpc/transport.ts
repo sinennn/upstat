@@ -12,7 +12,7 @@ import { fakeMonitorClient, fakeUserClient } from "./fake-backend";
  * vertical.
  *
  *   view → controller → repository (grpc/*) → this transport →
- *   gRPC-Web → Envoy (:8082) → api/common gRPC (:8080) → Mongo
+ *   gRPC-Web → Envoy (:2002) → api/common gRPC (:8080 in-cluster) → Mongo
  *
  * This module and its siblings under `grpc/` are the ONLY place the app
  * speaks gRPC; views never see it (enforced by `check:boundaries`) and

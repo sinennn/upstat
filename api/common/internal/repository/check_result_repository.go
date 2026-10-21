@@ -141,8 +141,10 @@ func (db *checkResultRepository) ListRecentByMonitor(monitorID string, limit int
 		limit = 10
 	}
 
-	if limit > 100 {
-		limit = 100
+	// 500 matches GetMonitorHistory's documented maximum; a 100 cap here
+	// silently truncated what the service promised.
+	if limit > 500 {
+		limit = 500
 	}
 
 	findOptions := options.Find().SetLimit(limit).SetSort(mostRecent)

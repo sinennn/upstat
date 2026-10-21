@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
  * which mirrors api/common's UserService + MonitorService. Seed: the user
  * ibukun@cuesoft.io / upstat-test with Website (up), API (down, open
  * incident), Docs (paused) and Blog (pending), and the public status page
- * slug `upstat`.
+ * slug `demo`.
  */
 
 const EMAIL = "ibukun@cuesoft.io";
@@ -96,14 +96,19 @@ test.describe("sign-in", () => {
     expect(response!.status()).toBe(404);
   });
 
-  test("signin column stays constrained at desktop width", async ({ page }) => {
+  test("signin form column stays constrained at desktop width", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/signin");
-    const box = await page
-      .getByTestId("signin-screen")
-      .locator("main")
-      .boundingBox();
-    expect(box!.width).toBeLessThanOrEqual(380);
+    const box = await page.getByTestId("signin-screen").boundingBox();
+    expect(box!.width).toBeLessThanOrEqual(400);
+    // and the brand panel shows beside it on desktop
+    await expect(
+      page.getByRole("heading", {
+        name: "Know the moment your site goes down.",
+      }),
+    ).toBeVisible();
   });
 });
 
@@ -117,8 +122,19 @@ test.describe("monitors", () => {
     await expect(list.getByRole("link").first()).toContainText("API");
     await expect(page.getByTestId("monitor-counts")).toContainText("1 down");
     await expect(page.getByTestId("monitor-counts")).toContainText("1 paused");
+    // headline tiles + live refresh
+    const overview = page.getByTestId("overview");
+    await expect(overview).toContainText("Monitors up");
+    await expect(overview).toContainText("Open incidents");
+    await expect(page.getByTestId("live-indicator")).toContainText("Live");
+    // per-row sparklines of recent checks
+    await expect(
+      list.getByRole("img", { name: /Last \d+ checks/ }).first(),
+    ).toBeAttached();
     // the open incident shows in the chrome banner
-    await expect(page.getByText("API is down")).toBeVisible();
+    await expect(
+      page.getByRole("button").filter({ hasText: "API is down" }),
+    ).toBeVisible();
   });
 
   test("create → detail → edit → pause → delete", async ({ page }) => {
@@ -139,7 +155,7 @@ test.describe("monitors", () => {
     await page.getByLabel("Check every (s)").fill("");
     await page.getByLabel("Timeout (s)").fill("");
     await page.getByRole("button", { name: "Create monitor" }).click();
-    await page.waitForURL(/\/dashboard\/monitors\/[0-9a-f]{24}$/);
+    await page.waitForURL(/\/dashboard\/monitors\/view\?id=[0-9a-f]{24}$/);
     const detail = page.getByTestId("monitor-detail");
     await expect(detail.getByRole("heading", { level: 1 })).toHaveText(
       "Example",
@@ -171,7 +187,10 @@ test.describe("monitors", () => {
       .getByRole("button", { name: "Delete monitor" })
       .click();
     await page.waitForURL("**/dashboard");
-    await expect(page.getByText("Example API")).toHaveCount(0);
+    // gone from the list (the confirmation toast still names it)
+    await expect(
+      page.getByLabel("Monitor list").getByText("Example API"),
+    ).toHaveCount(0);
   });
 
   test("detail shows history, checks, incidents and insight", async ({
@@ -226,8 +245,8 @@ test.describe("incidents", () => {
     const detail = page.getByTestId("incident-detail");
     await expect(detail.getByText("OPEN", { exact: true })).toBeVisible();
     await expect(detail).toContainText("context deadline exceeded");
-    await detail.getByRole("link", { name: "API" }).click();
-    await page.waitForURL(/\/dashboard\/monitors\//);
+    await detail.getByRole("link", { name: "API", exact: true }).click();
+    await page.waitForURL(/\/dashboard\/monitors\/view\?id=/);
   });
 });
 
@@ -269,10 +288,10 @@ test.describe("public status page", () => {
   test("by slug: services, 24h uptime and incidents, no sign-in", async ({
     page,
   }) => {
-    await page.goto("/status/upstat");
+    await page.goto("/status/demo");
     const status = page.getByTestId("status-page");
     await expect(status.getByRole("heading", { level: 1 })).toContainText(
-      "Upstat status",
+      "Upstat Demo status",
     );
     await expect(
       status.getByLabel("Services").getByRole("listitem"),

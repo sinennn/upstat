@@ -16,6 +16,7 @@
 ## System
 - [Architecture](architecture.md)
 - [Monitor Checker Extraction](monitor-service.md)
+- [Demo Script](demo.md)
 - [Data Model](data-model.md)
 - [API Surface](api.md)
 - [gRPC Reference](https://github.com/cuesoftinc/upstat/blob/main/api/common/docs/grpc-api.md)

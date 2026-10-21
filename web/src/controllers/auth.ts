@@ -33,6 +33,8 @@ export function authErrorCopy(e: unknown): string {
       return "Your browser blocked the Google window. Allow pop-ups and try again.";
     if (e.message === "sign_in_timeout" || e.message === "access_denied")
       return "Google sign-in was not completed.";
+    if (e.message === "state_mismatch")
+      return "That sign-in reply didn't match this attempt. Please try again.";
     return e.message;
   }
   return "Sign-in failed. Please try again.";
@@ -45,38 +47,39 @@ export function authErrorCopy(e: unknown): string {
 export function useAuthController() {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("signin");
-  const [loading, setLoading] = useState(false);
+  // which method is in flight, so only its button shows progress
+  const [pending, setPending] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = useCallback(
-    async (attempt: () => Promise<unknown>) => {
-      setLoading(true);
+    async (method: "google" | "email", attempt: () => Promise<unknown>) => {
+      setPending(method);
       setError(null);
       try {
         await attempt();
         router.push("/dashboard");
       } catch (e) {
         setError(authErrorCopy(e));
-        setLoading(false);
+        setPending(null);
       }
     },
     [router],
   );
 
   const signInWithGoogle = useCallback(
-    () => run(() => getAuthProvider().signInWithGoogle()),
+    () => run("google", () => getAuthProvider().signInWithGoogle()),
     [run],
   );
 
   const signInWithPassword = useCallback(
     (email: string, password: string) =>
-      run(() => getAuthProvider().signInWithPassword(email, password)),
+      run("email", () => getAuthProvider().signInWithPassword(email, password)),
     [run],
   );
 
   const signUp = useCallback(
     (name: string, email: string, password: string) =>
-      run(() => getAuthProvider().signUp(name, email, password)),
+      run("email", () => getAuthProvider().signUp(name, email, password)),
     [run],
   );
 
@@ -91,7 +94,8 @@ export function useAuthController() {
     signInWithGoogle,
     signInWithPassword,
     signUp,
-    loading,
+    pending,
+    loading: pending !== null,
     error,
   };
 }

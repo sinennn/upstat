@@ -15,6 +15,8 @@ export interface TooltipProps {
   placement?: "top" | "bottom";
   children: ReactNode;
   className?: string;
+  /** Let the trigger stretch as a flex child (bar strips that fill a row). */
+  grow?: boolean;
 }
 
 /**
@@ -27,6 +29,7 @@ export function Tooltip({
   content,
   placement = "top",
   children,
+  grow = false,
   className,
 }: TooltipProps) {
   return (
@@ -38,9 +41,13 @@ export function Tooltip({
       <TooltipPrimitive.Root>
         {/* wrapper spans preserved from the hand-rolled version — the W1
             layout (e.g. UptimeCard bar strips) depends on them */}
-        <span className="relative inline-flex">
+        <span
+          className={clsx("relative inline-flex", grow && "min-w-0 flex-1")}
+        >
           <TooltipPrimitive.Trigger asChild>
-            <span className="inline-flex">{children}</span>
+            <span className={clsx("inline-flex", grow && "w-full")}>
+              {children}
+            </span>
           </TooltipPrimitive.Trigger>
           <TooltipPrimitive.Portal>
             <TooltipPrimitive.Content

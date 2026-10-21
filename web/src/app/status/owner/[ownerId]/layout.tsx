@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   description: "Live service status, uptime history and incident reports.",
 };
 
+/** Placeholder for the desktop static export (see status/[slug]). */
+export function generateStaticParams() {
+  return [{ ownerId: "_" }];
+}
+
 export default function OwnerStatusLayout({
   children,
 }: {

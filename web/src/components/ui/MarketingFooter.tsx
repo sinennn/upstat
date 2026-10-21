@@ -30,24 +30,21 @@ const COLUMNS: FooterColumn[] = [
     heading: "Product",
     links: [
       { label: "Features", href: "/#features" },
-      { label: "Try Cloud", href: "/signin" },
-      { label: "Self Host", href: "/#self-host" },
-      { label: "Platform", href: "/#pillars" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "Live status page", href: "/status/demo" },
+      { label: "Sign in", href: "/signin" },
     ],
   },
   {
     heading: "Docs",
     links: [
       { label: "Docs", href: "https://cuesoft.gitbook.io/upstat" },
-      { label: "Quickstart", href: "https://cuesoft.gitbook.io/upstat/setup" },
+      { label: "Architecture", href: "/#architecture" },
       {
         label: "gRPC reference",
         href: "https://github.com/cuesoftinc/upstat/blob/main/api/common/docs/grpc-api.md",
       },
-      {
-        label: "Self-host guide",
-        href: "https://cuesoft.gitbook.io/upstat/system/deployment",
-      },
+      { label: "Self-host", href: "/#self-host" },
     ],
   },
   {
@@ -55,10 +52,6 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: "GitHub", href: "https://github.com/cuesoftinc/upstat" },
       { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
-      {
-        label: "Roadmap",
-        href: "https://cuesoft.gitbook.io/upstat/product/roadmap",
-      },
       { label: "CueLABS™", href: "https://cuelabs.cuesoft.io" },
     ],
   },
@@ -67,7 +60,6 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: "Privacy", href: "https://privacy.cuesoft.io" },
       { label: "Terms", href: "https://terms.cuesoft.io" },
-      { label: "Status", href: "https://status.cuesoft.io" },
     ],
   },
 ];
@@ -107,7 +99,7 @@ export function MarketingFooter({
                 (systemic adjudication 2026-07-20 — "U" tile retired) */}
             <BrandMark wordmark className="text-[16px]" />
             <span className="text-[12px] leading-[1.45] text-text-2">
-              All your telemetry. One open platform.
+              Uptime monitoring, incidents and status pages.
             </span>
           </div>
         )}

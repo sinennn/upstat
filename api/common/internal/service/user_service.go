@@ -113,9 +113,31 @@ func (s *UserServiceServer) CreateUser(ctx context.Context, req *pb.CreateUserRe
 	}, nil
 }
 
+// requireSelf allows an account RPC only on the caller's own user id — the
+// interceptor authenticates, this authorizes.
+func requireSelf(ctx context.Context, id string) error {
+	if id == "" {
+		return status.Error(codes.InvalidArgument, "id is required")
+	}
+	callerID, ok := util.UserIDFromContext(ctx)
+	if !ok || callerID == "" {
+		return status.Error(codes.Unauthenticated, "missing authenticated user")
+	}
+	if callerID != id {
+		return status.Error(codes.PermissionDenied, "you can only change your own account")
+	}
+	return nil
+}
+
 func (s *UserServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
-	if req.GetId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
+	if err := requireSelf(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+
+	if email := req.GetEmail(); email != "" {
+		if existing, err := s.userRepo.GetUser(email); err == nil && existing.Id.Hex() != req.GetId() {
+			return nil, status.Error(codes.AlreadyExists, "email already exists")
+		}
 	}
 
 	password := req.GetPassword()
@@ -141,8 +163,8 @@ func (s *UserServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRe
 }
 
 func (s *UserServiceServer) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	if req.GetId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
+	if err := requireSelf(ctx, req.GetId()); err != nil {
+		return nil, err
 	}
 
 	_, err := s.userRepo.DeleteUser(req.GetId())

@@ -124,7 +124,9 @@ def get_incident_context(monitor_id: str) -> IncidentContext:
             historical_incident_count=len(incidents),
             recent_incident_count=recent_incident_count,
             time_since_last_incident_seconds=seconds_since_last,
-            last_incident_severity=last_incident.severity if last_incident is not None else None,
+            # the Incident message carries no severity; reading it raised and
+            # silently discarded the whole incident context
+            last_incident_severity=getattr(last_incident, "severity", None) if last_incident is not None else None,
             last_incident_summary=last_incident.failure_reason if last_incident is not None else None,
             last_incident_started_at=_parse_checked_at(last_incident.started_at) if last_incident is not None else None,
             last_incident_resolved_at=_parse_checked_at(last_incident.resolved_at) if last_incident is not None and last_incident.resolved_at else None,

@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     // Hand-maintained protobuf mirror of api/common's .proto files
     // (src/proto/upstat-message.ts) — wire code, not UI.
     "src/proto/**",
+    // Tauri shell: Rust sources + build output
+    "src-tauri/**",
   ]),
   // W3 enforcement gate (paired with scripts/check-boundaries.mjs):
   // src/legacy is quarantined — no live import may reach it.

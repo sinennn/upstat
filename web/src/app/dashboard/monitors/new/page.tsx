@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MonitorForm } from "@/components/monitors/MonitorForm";
+import { useToast } from "@/components/ui/Toast";
 import { useMonitorMutations } from "@/controllers/monitors";
+import { routes } from "@/config/routes";
 
 /** CreateMonitor. */
 export default function NewMonitorPage() {
   const router = useRouter();
+  const toast = useToast();
   const { create } = useMonitorMutations();
 
   return (
@@ -25,7 +28,12 @@ export default function NewMonitorPage() {
         onCancel={() => router.push("/dashboard")}
         onSubmit={async (input) => {
           const m = await create(input);
-          router.push(`/dashboard/monitors/${m.id}`);
+          toast({
+            kind: "ok",
+            title: `${m.name} created`,
+            body: `First check within ${m.interval_seconds}s.`,
+          });
+          router.push(routes.monitor(m.id));
         }}
       />
     </div>

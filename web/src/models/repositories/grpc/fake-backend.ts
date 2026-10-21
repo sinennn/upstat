@@ -95,7 +95,7 @@ export const FAKE_USER = {
 } as const;
 
 /** Seeded public status page slug. */
-export const FAKE_STATUS_SLUG = "upstat";
+export const FAKE_STATUS_SLUG = "demo";
 
 let state: State | null = null;
 
@@ -131,7 +131,7 @@ function seed(now: number): State {
   s.statusPages.push({
     slug: FAKE_STATUS_SLUG,
     ownerId: owner.id,
-    name: "Upstat",
+    name: "Upstat Demo",
   });
 
   const monitor = (
@@ -397,6 +397,17 @@ function authenticate(s: State, md: grpcWeb.Metadata | undefined): string {
   return id;
 }
 
+/** user_service.go requireSelf — account RPCs only on your own id. */
+function requireSelf(callerId: string, id: string): void {
+  if (!id) throw new FakeRpcError(CODE.INVALID_ARGUMENT, "id is required");
+  if (callerId !== id) {
+    throw new FakeRpcError(
+      CODE.PERMISSION_DENIED,
+      "you can only change your own account",
+    );
+  }
+}
+
 /** Runs one RPC against the shared state, persisting any mutation. */
 async function rpc<T>(fn: (s: State, now: number) => T): Promise<T> {
   const s = load();
@@ -604,9 +615,12 @@ export const fakeUserClient = {
 
   updateUser: (req: pb.UpdateUserRequest, md?: grpcWeb.Metadata) =>
     rpc((s) => {
-      authenticate(s, md);
-      if (!req.getId()) {
-        throw new FakeRpcError(CODE.INVALID_ARGUMENT, "id is required");
+      requireSelf(authenticate(s, md), req.getId());
+      if (
+        req.getEmail() &&
+        s.users.some((x) => x.email === req.getEmail() && x.id !== req.getId())
+      ) {
+        throw new FakeRpcError(CODE.ALREADY_EXISTS, "email already exists");
       }
       const u = s.users.find((x) => x.id === req.getId());
       if (u) {
@@ -622,10 +636,7 @@ export const fakeUserClient = {
 
   deleteUser: (req: pb.DeleteUserRequest, md?: grpcWeb.Metadata) =>
     rpc((s) => {
-      authenticate(s, md);
-      if (!req.getId()) {
-        throw new FakeRpcError(CODE.INVALID_ARGUMENT, "id is required");
-      }
+      requireSelf(authenticate(s, md), req.getId());
       // like the backend: the user row only — their monitors are not removed
       s.users = s.users.filter((x) => x.id !== req.getId());
       return withFields(new pb.DeleteUserResponse(), {

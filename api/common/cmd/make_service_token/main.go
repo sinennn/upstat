@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	userId := "service-observability"
+	userId := util.ServiceUserID
 	email := "observability@local"
 	if len(os.Args) >= 2 {
 		userId = os.Args[1]

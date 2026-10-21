@@ -17,6 +17,8 @@ export interface UptimeCardProps {
   p95Ms?: number;
   /** Header status pill; derived from the latest day when omitted. */
   status?: StatusPillStatus;
+  /** Stretch the 90 bars across the card's full width (wide layouts). */
+  fill?: boolean;
   className?: string;
 }
 
@@ -46,6 +48,7 @@ export function UptimeCard({
   uptimePct,
   p95Ms,
   status,
+  fill = false,
   className,
 }: UptimeCardProps) {
   // §5: every chart exposes a data-table alternative (newest day first)
@@ -53,7 +56,8 @@ export function UptimeCard({
   return (
     <div
       className={clsx(
-        "font-ui flex w-full min-w-0 max-w-xl flex-col gap-2.5 rounded-(--radius) border border-border bg-bg-elev p-4",
+        "font-ui flex w-full min-w-0 flex-col gap-2.5 rounded-(--radius) border border-border bg-bg-elev p-4",
+        !fill && "max-w-xl",
         className,
       )}
     >
@@ -89,13 +93,17 @@ export function UptimeCard({
         // overflow-x-auto: the 90 fixed-width bars scroll inside the card on
         // narrow viewports (375w); desktop rendering is unchanged
         <div
-          className="flex items-stretch gap-px overflow-x-auto"
+          className={clsx(
+            "flex items-stretch gap-px",
+            fill ? "w-full" : "overflow-x-auto",
+          )}
           role="img"
           aria-label={`${name} 90-day uptime`}
         >
           {days.map((day, i) => (
             <Tooltip
               key={day.date}
+              grow={fill}
               content={[
                 {
                   label: day.date,
@@ -111,7 +119,8 @@ export function UptimeCard({
                 data-date={day.date}
                 style={{ animationDelay: `${(i / days.length) * 400}ms` }}
                 className={clsx(
-                  "block h-6 w-[3px] origin-bottom rounded-[1px]",
+                  "block h-6 origin-bottom rounded-[1px]",
+                  fill ? "min-w-0 flex-1" : "w-[3px]",
                   barTint(day),
                   "animate-[bar-fill_var(--duration-entrance)_var(--ease-standard)_both] motion-reduce:animate-none",
                 )}

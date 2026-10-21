@@ -11,11 +11,9 @@ import (
 	"time"
 )
 
-// Notifier delivers a single outbox entry. LogNotifier is the only sink
-// wired up today — no email/webhook/Slack provider exists in this codebase
-// yet. A real channel is a second implementation of this interface plugged
-// into NotificationWorker; the outbox and its retry/lease bookkeeping don't
-// change when that lands.
+// Notifier delivers a single outbox entry. EmailJSNotifier emails the
+// monitor's owner when EMAILJS_* is configured; LogNotifier is the fallback
+// sink. The outbox and its retry/lease bookkeeping are the same for both.
 type Notifier interface {
 	Deliver(ctx context.Context, entry *model.NotificationOutbox) error
 }
@@ -49,9 +47,17 @@ type NotificationWorker struct {
 }
 
 func NewNotificationWorker(db *config.DB) *NotificationWorker {
+	var notifier Notifier = LogNotifier{}
+	if cfg, ok := EmailJSConfigFromEnv(); ok {
+		notifier = NewEmailJSNotifier(cfg, repository.NewMonitorRepository(db), repository.NewUserRepository(db))
+		slog.Info("notifications: emailing via EmailJS")
+	} else {
+		slog.Info("notifications: EMAILJS_* not set, logging only")
+	}
+
 	return &NotificationWorker{
 		NotificationRepo: repository.NewNotificationRepository(db),
-		Notifier:         LogNotifier{},
+		Notifier:         notifier,
 		Concurrency:      10,
 		PollInterval:     5 * time.Second,
 		LeaseDuration:    30 * time.Second,

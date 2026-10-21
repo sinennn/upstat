@@ -27,7 +27,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-COPY --from=builder /app/web/public ./public
+# static assets (public/google.png …) — the standalone server does not copy them
+COPY --from=builder --chown=node:node /app/web/public ./public
 COPY --from=builder --chown=node:node /app/web/.next/standalone ./
 COPY --from=builder --chown=node:node /app/web/.next/static ./.next/static
 USER node

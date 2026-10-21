@@ -309,3 +309,34 @@ func TestMonitorService_ListIncidents_OwnerScoped(t *testing.T) {
 }
 
 func boolPtr(b bool) *bool { return &b }
+
+type byIDMonitorRepo struct {
+	svcFakeMonitorRepo
+	byID map[string]*model.Monitor
+}
+
+func (f *byIDMonitorRepo) GetMonitorByID(id string) (*model.Monitor, error) {
+	if m, ok := f.byID[id]; ok {
+		return m, nil
+	}
+	return nil, errors.New("not found")
+}
+
+// The insight service's token may read any monitor; a normal user still
+// cannot read someone else's (their lookup stays owner-scoped).
+func TestGetMonitor_ServicePrincipalBypassesOwnerScope(t *testing.T) {
+	m := &model.Monitor{Id: primitive.NewObjectID(), OwnerId: "owner-a", Name: "API"}
+	repo := &byIDMonitorRepo{byID: map[string]*model.Monitor{m.Id.Hex(): m}}
+	srv := &MonitorServiceServer{MonitorRepo: repo}
+
+	svc := authedContext(t, util.ServiceUserID, "observability@local")
+	resp, err := srv.GetMonitor(svc, &pb.GetMonitorRequest{Id: m.Id.Hex()})
+	if err != nil || resp.GetMonitor().GetName() != "API" {
+		t.Fatalf("service principal: got %v, %v", resp, err)
+	}
+
+	other := authedContext(t, "owner-b", "b@example.com")
+	if _, err := srv.GetMonitor(other, &pb.GetMonitorRequest{Id: m.Id.Hex()}); status.Code(err) != codes.NotFound {
+		t.Fatalf("other owner: want NotFound, got %v", err)
+	}
+}

@@ -111,7 +111,7 @@ async function assertStable(page: Page, route: string, settle: string) {
 test("home stays layout-stable on load (CLS < 0.1)", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
+    page.getByRole("heading", { level: 1, name: /Know the moment/ }),
   ).toBeVisible();
   await page.waitForTimeout(3_000);
   const { cls, worst } = await windowedCls(page);

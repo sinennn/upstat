@@ -86,6 +86,37 @@ describe("fake UserService", () => {
   });
 });
 
+describe("fake account RPCs", () => {
+  it("refuse to touch another user's account", async () => {
+    const md = await signIn();
+    await fakeUserClient.createUser(
+      new pb.CreateUserRequest()
+        .setName("V")
+        .setEmail("v@x.io")
+        .setPassword("pw"),
+    );
+    const victim = await fakeUserClient.getUser(
+      new pb.GetUserRequest().setEmail("v@x.io").setPassword("pw"),
+    );
+    expect(
+      await rejects(
+        fakeUserClient.updateUser(
+          new pb.UpdateUserRequest().setId(victim.getId()).setName("pwned"),
+          md,
+        ),
+      ),
+    ).toMatchObject({ code: 7 });
+    expect(
+      await rejects(
+        fakeUserClient.deleteUser(
+          new pb.DeleteUserRequest().setId(victim.getId()),
+          md,
+        ),
+      ),
+    ).toMatchObject({ code: 7 });
+  });
+});
+
 describe("fake MonitorService", () => {
   it("requires a bearer session", async () => {
     expect(
@@ -217,7 +248,7 @@ describe("fake MonitorService", () => {
     const r = await fakeMonitorClient.getStatusPage(
       new pb.GetStatusPageRequest().setSlug(FAKE_STATUS_SLUG),
     );
-    expect(r.getPageName()).toBe("Upstat");
+    expect(r.getPageName()).toBe("Upstat Demo");
     expect(r.getComponentsList().length).toBeGreaterThan(0);
     expect(
       await rejects(
